@@ -8,4 +8,5 @@ set(ANDROID_ABI "armeabi-v7a")
 project(HORIZON)
 cmake_minimum_required(VERSION 2.8)
 
-add_executable(horizon src/main.cpp)
+include_directories(include)
+add_executable(horizon src/main.cpp src/Module.cpp)
