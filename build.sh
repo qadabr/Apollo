@@ -1,5 +1,4 @@
-rm -rf bin
-mkdir bin
+mkdir -p bin
 
 cd bin
 cmake ..
