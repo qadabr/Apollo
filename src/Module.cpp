@@ -3,11 +3,11 @@
 #include <dlfcn.h>
 #include "Logger.h"
 
-#define MODULES_PATH "/data/local/tmp/"
+#define MODULES_DIR "/data/local/tmp/"
 
 Module::Module(const std::string& path)
 {
-	m_path = path;
+	m_path = MODULES_DIR + path;
 }
 
 Module::~Module()
@@ -17,7 +17,7 @@ Module::~Module()
 
 void Module::Load()
 {
-	m_handler = dlopen((MODULES_PATH + m_path).c_str(), RTLD_LAZY);
+	m_handler = dlopen(m_path.c_str(), RTLD_LAZY);
 	if (m_handler == NULL) {
 		LOG_E("Failed to open %s because %s\n",
 		      m_path.c_str(), dlerror());

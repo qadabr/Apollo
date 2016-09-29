@@ -16,7 +16,7 @@ file(GLOB SOURCES src/*)
 add_executable(horizon ${SOURCES})
 target_link_libraries(horizon ${LIBRARY_DEPS})
 
-file(GLOB MODULES modules/*.c)
+file(GLOB MODULES modules/*)
 foreach (module ${MODULES})
   get_filename_component(result ${module} NAME_WE)
   add_library(${result} SHARED ${module})
