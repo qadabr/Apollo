@@ -23,25 +23,6 @@ void Module::Load()
 	}
 }
 
-int Module::LoadAPI()
-{
-	void* api = FindSymbol("__module_api");
-	if (api == NULL) {
-		return -1;
-	}
-
-	m_apiSize = *((size_t*)api) - 1;
-	m_api = new api_command[m_apiSize];
-
-	for (size_t num = 0; num < m_apiSize; ++num) {
-		m_api[num] = (api_command)((size_t*)api + (num + 1) * sizeof(size_t));
-	}
-
-	LOG_I("Total module API size: %d\n", m_apiSize);
-	
-	return 0;
-}
-
 void Module::Free()
 {
 	dlclose(m_handler);

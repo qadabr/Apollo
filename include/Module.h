@@ -21,7 +21,6 @@ class Module
 	int ExecuteCommand(const std::string& command, void* arguments);
 	int Start();
 	int Stop();
-	int LoadAPI();
  private:
 	std::string           m_path;
 	void*                 m_handler;

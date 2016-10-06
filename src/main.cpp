@@ -9,7 +9,6 @@ int main(int argc, char** argv)
 	LOG_D("Try to load HelloWorld.module");
 
 	modHelloWorld.Load();
-	modHelloWorld.LoadAPI();
 	modHelloWorld.Start();
 	modHelloWorld.Stop();
 
