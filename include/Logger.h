@@ -1,10 +1,9 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#define  LOG_TAG "Horizon"
+#define  LOG_TAG "Apollo"
 
 #include <android/log.h>
-
 
 #define LOG_E(M, ...) __android_log_print(ANDROID_LOG_ERROR,		\
 					  LOG_TAG,			\
@@ -34,6 +33,5 @@
 					  __FILE__, __LINE__,		\
 					  __func__,			\
 					  ##__VA_ARGS__)
-
 
 #endif /* LOGGER_H */

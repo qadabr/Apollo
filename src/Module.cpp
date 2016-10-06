@@ -23,11 +23,34 @@ void Module::Load()
 	}
 }
 
+int Module::LoadAPI()
+{
+	void* api = FindSymbol("__module_api");
+	if (api == NULL) {
+		return -1;
+	}
+
+	m_apiSize = *((size_t*)api) - 1;
+	m_api = new api_command[m_apiSize];
+
+	for (size_t num = 0; num < m_apiSize; ++num) {
+		m_api[num] = (api_command)((size_t*)api + (num + 1) * sizeof(size_t));
+	}
+
+	LOG_I("Total module API size: %d\n", m_apiSize);
+	
+	return 0;
+}
+
 void Module::Free()
 {
 	dlclose(m_handler);
 	LOG_D("Module %s has been successfully closed\n",
-	      m_path.c_str());		
+	      m_path.c_str());
+
+	if (m_api != NULL) {
+		delete[] m_api;
+	}
 }
 
 void* Module::FindSymbol(const std::string& name)
@@ -38,4 +61,38 @@ void* Module::FindSymbol(const std::string& name)
 	}
 	
 	return symbol;
+}
+
+int Module::ExecuteCommand(const std::string& command, void* arguments)
+{
+	api_command func;
+
+	func = (typeof func)FindSymbol(command);
+	if (func == NULL) {
+		return -1;
+	}
+
+	return func(arguments);
+}
+
+int Module::Start()
+{
+	int result = ExecuteCommand("__module_init", NULL);
+	if (result != 0) {
+		LOG_E("Failed to start module %s, error code %d\n",
+		      m_path.c_str(), result);
+	}
+
+	return result;
+}
+
+int Module::Stop()
+{
+	int result = ExecuteCommand("__module_exit", NULL);
+	if (result != 0) {
+		LOG_E("Failed to stop module %s, error code %d\n",
+		      m_path.c_str(), result);
+	}
+
+	return result;
 }
