@@ -1,4 +1,4 @@
-set(PROJECT_NAME eucalyptus)
+set(PROJECT_NAME apollo)
 
 set(CMAKE_TOOLCHAIN_FILE android-cmake/android.toolchain.cmake)
 set(ANDROID_NDK $ENV{ANDROID_NDK})
@@ -23,6 +23,6 @@ foreach (module_src ${MODULES})
   string(TOLOWER ${module} module)
   add_library(${module} SHARED ${module_src})
   set_target_properties(${module} PROPERTIES PREFIX "")
-  set_target_properties(${module} PROPERTIES SUFFIX ".em")
+  set_target_properties(${module} PROPERTIES SUFFIX ".m")
   target_link_libraries(${module} ${LIBRARY_DEPS})
 endforeach(module_src)
