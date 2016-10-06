@@ -1,13 +1,13 @@
+#include "Macros.h"
 #include "Logger.h"
-#include <android/log.h>
 
-extern "C" int mod_init(void)
+MODULE_INIT
 {
 	LOG_D("Привет, Horizon!\n");
 	return 0;
 }
 
-extern "C" void mod_exit(void)
+MODULE_EXIT
 {
 	LOG_D("Прощай, Horizon :(\n");
 }

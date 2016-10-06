@@ -2,6 +2,10 @@
 #define MODULE_H
 
 #include <string>
+#include <dlfcn.h>
+
+#include "Setting.h"
+#include "Logger.h"
 
 class Module
 {

@@ -1,10 +1,5 @@
 #include "Module.h"
 
-#include <dlfcn.h>
-#include "Logger.h"
-
-#define MODULES_DIR "/data/local/tmp/"
-
 Module::Module(const std::string& path)
 {
 	m_path = MODULES_DIR + path;
