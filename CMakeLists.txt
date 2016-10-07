@@ -1,5 +1,7 @@
 set(PROJECT_NAME apollo)
 
+set(CMAKE_CXX_STANDARD 11)
+
 set(CMAKE_TOOLCHAIN_FILE android-cmake/android.toolchain.cmake)
 set(ANDROID_NDK $ENV{ANDROID_NDK})
 
@@ -8,7 +10,7 @@ set(ANDROID_TOOLCHAIN_NAME "arm-linux-androideabi-4.8")
 set(ANDROID_ABI "armeabi-v7a")
 
 project(${PROJECT_NAME})
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 set(LIBRARY_DEPS log)
 
