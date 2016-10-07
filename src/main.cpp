@@ -1,16 +1,14 @@
 #include <stdio.h>
 
 #include "Module.h"
+#include "Server.h"
 #include "Logger.h"
 
 int main(int argc, char** argv)
 {
-	Module modHelloWorld("HelloWorld.module");
-	LOG_D("Try to load HelloWorld.module");
-
-	modHelloWorld.Load();
-	modHelloWorld.Start();
-	modHelloWorld.Stop();
+	Server aServer;
+	aServer.Listen();
+	aServer.Accept();
 
 	return 0;
 }

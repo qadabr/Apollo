@@ -11,7 +11,7 @@ Server::Server() : m_connectionThread(nullptr), m_isRunning(false)
 		return;
 	}
 
-	m_listenSocket = socket(AF_INET, SOCK_STREAM, 0);
+	m_listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	g_isCreated = true;
 }
 
@@ -26,10 +26,10 @@ void Server::Listen()
 	struct sockaddr_in servaddr;
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = htons(INADDR_ANY);
-	servaddr.sin_port = SERVER_PORT;
+	servaddr.sin_addr.s_addr = INADDR_ANY;
+	servaddr.sin_port = htons(SERVER_PORT);
 
-	bind(m_listenSocket, (struct sockaddr*)&servaddr,sizeof(servaddr));
+	bind(m_listenSocket, (struct sockaddr*)&servaddr, sizeof(servaddr));
 	listen(m_listenSocket, 5);
 
 	LOG_D("Start listening on port %d\n", SERVER_PORT);
