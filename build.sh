@@ -1,5 +1,5 @@
-mkdir -p _
+mkdir -p binary
 
-cd _
+cd binary
 cmake ..
 make

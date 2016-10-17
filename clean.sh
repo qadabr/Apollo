@@ -1,1 +1,1 @@
-rm -rf _
+rm -rf binary
