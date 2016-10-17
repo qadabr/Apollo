@@ -1,14 +1,11 @@
 #include <stdio.h>
 
-#include "Module.h"
-#include "Server.h"
 #include "Logger.h"
+#include "SonicRay.h"
 
 int main(int argc, char** argv)
 {
-	Server aServer;
-	aServer.Listen();
-	aServer.Accept();
+	SonicRay theSonicRay(8000, 500, 4000);
 
 	return 0;
 }

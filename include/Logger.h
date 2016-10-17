@@ -1,7 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#define  LOG_TAG "Apollo"
+#define LOG_TAG "apollo"
 
 #include <android/log.h>
 
