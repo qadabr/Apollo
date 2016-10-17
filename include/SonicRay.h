@@ -4,6 +4,8 @@
 #include "Logger.h"
 
 #include <cstdint>
+#include <SLES/OpenSLES.h>
+#include <SLES/OpenSLES_Android.h>
 
 class SonicRay
 {
