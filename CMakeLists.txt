@@ -15,11 +15,10 @@ cmake_minimum_required(VERSION 3.1)
 set(LIBRARY_DEPS log OpenSLES)
 
 include_directories(include)
-file(GLOB SOURCES src/*.cpp)
+file(GLOB SOURCES ${PROJECT_NAME}/*.cpp)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${LIBRARY_DEPS})
 
-include_directories(modules/include)
 file(GLOB MODULES modules/*/*.cpp)
 foreach (module_src ${MODULES})
   get_filename_component(module ${module_src} NAME_WE)
