@@ -1,32 +1,33 @@
 #ifndef SOUNDPLAYER_H
 #define SOUNDPLAYER_H
 
-#include "unistd.h"
-#include <cmath>
 #include <cstddef>
-#include <SLES/OpenSLES.h>
-#include <SLES/OpenSLES_Android.h>
+
+#include "SoundEngine.h"
+
+#define PLAYER_SAMPLING_RATE 41000
 
 class SoundPlayer
 {
  public:
-	SoundPlayer();
+	SoundPlayer(SoundEngine* engine);
+	~SoundPlayer();
  public:
-	void PlayTone(double freq, double duration);
+	void Play();
+	void Stop();
+	void ClearQueue();
+	void EnqueueBuffer(char* buffer, size_t bufferSize);
  private:
-	void createEngine();
-	void getIidEngine();
-	void createOutputMix();
-	void createAudioPlayer();
-	void getIidPlay();
-	void getIidBufferQueue();
- private:
-	SLObjectItf m_engineObj;
-	SLEngineItf m_engine;
-	SLObjectItf m_outputMixObj;
-	SLObjectItf m_playerObj;
-	SLPlayItf m_player;
-	SLBufferQueueItf m_bufferQueue;
+	char* m_buffer;
+	size_t m_bufferSize;
+		
+	SoundEngine* m_engine;
+
+	SLObjectItf m_outputMix;
+	SLObjectItf m_player;
+
+	SLPlayItf m_playerInterface;
+	SLBufferQueueItf m_bufferQueueInterface;
 };
 
 #endif /* SOUNDPLAYER_H */
