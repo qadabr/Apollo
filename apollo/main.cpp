@@ -1,11 +1,12 @@
 #include <stdio.h>
 
 #include "Logger.h"
-#include "SonicRay.h"
+#include "SoundPlayer.h"
 
 int main(int argc, char** argv)
 {
-	SonicRay theSonicRay(8000, 500, 4000);
+	SoundPlayer player;
+	player.PlayTone(1000, 3);
 
 	return 0;
 }
