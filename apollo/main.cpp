@@ -5,9 +5,9 @@
 
 int main(int argc, char** argv)
 {
-	std::string message = "VLAD";
+	std::string message = "Hello";
 	
-	SilverPush sp(48000, 1000, 10000, 200);
+	SilverPush sp(48000, 1000, 10000, 100);
 	sp.SendMessage(message);
 	sleep(message.length());
 	

@@ -26,7 +26,6 @@ class SoundPlayer
 
 	SLObjectItf m_outputMix;
 	SLObjectItf m_player;
-
 	SLPlayItf m_playerInterface;
 	SLBufferQueueItf m_bufferQueueInterface;
 };
