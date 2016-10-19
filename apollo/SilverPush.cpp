@@ -1,12 +1,12 @@
 #include "SilverPush.h"
 
-SilverPush::SilverPush(double minFreq, double maxFreq, size_t duration)
+SilverPush::SilverPush(uint32_t sampleRate, double minFreq, double maxFreq, size_t duration)
 	: m_minFreq(minFreq),
 	  m_maxFreq(maxFreq),
 	  m_duration(duration)
 {
 	m_engine = new SoundEngine();
-	m_player = new SoundPlayer(m_engine, 48000);
+	m_player = new SoundPlayer(m_engine, sampleRate);
 }
 
 SilverPush::~SilverPush()
@@ -53,7 +53,10 @@ char* SilverPush::generateWave(const std::string& message)
 		LOG_D("%0.2f Hz\n", freq);
 		for (size_t j = 0; j < fragmentSize; ++j) {
 			double value = 1.0 * x * freq / m_player->GetSamplingRate();
+			// Синусоида
 			wave[x++] = 32767 * sin(2 * M_PI * value);
+			// Пила
+			// wave[x++] = 32767 * (fmod(value, 1.0) * 2 - 1);
 		}
 	}
 

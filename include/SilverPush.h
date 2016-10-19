@@ -12,7 +12,7 @@
 class SilverPush
 {
  public:
-	SilverPush(double minFreq, double maxFreq, size_t duration);
+	SilverPush(uint32_t sampleRate, double minFreq, double maxFreq, size_t duration);
 	~SilverPush();
  public:
 	void SendMessage(const std::string& message);
