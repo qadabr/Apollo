@@ -17,9 +17,8 @@ SilverPush::~SilverPush()
 
 void SilverPush::SendMessage(const std::string& message)
 {
-	size_t bufferSize = (size_t)(4 * message.length() * m_duration
-				     * m_player->GetSamplingRate() / 1000.0);
-	char* buffer = this->generateWave(message);
+	size_t bufferSize;
+	char* buffer = this->generateWave(message, &bufferSize);
 
 	m_player->ClearQueue();
 	m_player->EnqueueBuffer(buffer, bufferSize);
@@ -36,7 +35,7 @@ static char getNibble(const std::string& message, size_t index)
 	return nibble;
 }
 
-char* SilverPush::generateWave(const std::string& message)
+char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 {
 	/* Размер фрагмента волны, который должен звучать на одной высоте */
 	size_t fragmentSize = (size_t)(m_duration * m_player->GetSamplingRate() / 1000.0);
@@ -61,7 +60,8 @@ char* SilverPush::generateWave(const std::string& message)
 	}
 
 	/* Конвертируем в массив байт */
-	char* buffer = new char[fragmentSize * fragmentCount * 2];
+	*bufferSize = fragmentSize * fragmentCount * 2;
+	char* buffer = new char[*bufferSize];
 	
 	size_t j = 0;
 	for (size_t i = 0; i < fragmentSize * fragmentCount; ++i) {

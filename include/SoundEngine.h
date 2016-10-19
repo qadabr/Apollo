@@ -13,9 +13,7 @@ class SoundEngine
 	SoundEngine();
 	~SoundEngine();
 
-	SLEngineItf GetInterface() {
-		return m_soundEngineInterface;
-	}
+	SLEngineItf GetInterface();
  private:
 	void createEngine();
  private:

@@ -16,6 +16,10 @@ SoundEngine::~SoundEngine()
 	
 }
 
+SLEngineItf SoundEngine::GetInterface() {
+	return m_soundEngineInterface;
+}
+
 void SoundEngine::createEngine()
 {
 	const SLInterfaceID pIDs[] = { SL_IID_ENGINE };

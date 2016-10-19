@@ -17,7 +17,7 @@ class SilverPush
  public:
 	void SendMessage(const std::string& message);
  private:
-	char* generateWave(const std::string& message);
+	char* generateWave(const std::string& message, size_t* bufferSize);
  private:
 	double m_minFreq;
 	double m_maxFreq;
