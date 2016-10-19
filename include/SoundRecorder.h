@@ -7,7 +7,7 @@ class SoundRecorder
 	SoundRecorder();
 	~SoundRecorder();
  private:
-	
+	SoundEngine* m_engine;
 };
 
 #endif /* SOUNDRECORDER_H */

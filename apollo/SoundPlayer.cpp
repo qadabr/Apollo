@@ -99,3 +99,8 @@ void SoundPlayer::EnqueueBuffer(char* buffer, size_t bufferSize)
 	(*m_bufferQueueInterface)->Enqueue(m_bufferQueueInterface,
 					   buffer, bufferSize);
 }
+
+uint32_t SoundPlayer::GetSamplingRate()
+{
+	return m_samplingRate;
+}
