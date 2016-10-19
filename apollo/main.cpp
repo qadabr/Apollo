@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv)
 {
-	std::string message = "333";
+	std::string message = std::string({0x77, 0x77, 0x77, 0x77, 0x77});
 	
 	SilverPush sp(500, 5000, 1000);
 	sp.SendMessage(message);

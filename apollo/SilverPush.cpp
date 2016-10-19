@@ -28,7 +28,11 @@ void SilverPush::SendMessage(const std::string& message)
 static char getNibble(const std::string& message, size_t index)
 {
 	/* Выделяем ниббл из байта */
-	return (message[index / 2] >> (index % 2)) & 0xf;
+	char nibble = (message[index / 2] >> ((index % 2) * 4)) & 0xf;
+	LOG_D("Message: \"%s\", char 0x%2x, nibble with index %u is 0x%1x\n",
+	      message.c_str(), message[index / 2], index, nibble);
+	
+	return nibble;
 }
 
 char* SilverPush::generateWave(const std::string& message)
