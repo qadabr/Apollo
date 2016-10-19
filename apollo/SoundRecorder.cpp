@@ -1,8 +1,17 @@
 #include "SoundRecorder.h"
 
-static void recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+void SoundRecorder::recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 {
-	SoundRecorder* soundRecorder = (SoundRecorder *)context;
+	SoundRecorder* recorder = (SoundRecorder *)context;
+
+	uint16_t* buffer = new uint16_t[recorder->GetSamplingRate() * PIECE_SIZE];
+	SLAndroidSimpleBufferQueueItf queueItf = recorder->GetQueueInterface();
+
+	g_lock.lock();
+	(*queueItf)->Enqueue
+		(queueItf, buffer, recorder->GetSamplingRate() * PIECE_SIZE * sizeof(uint16_t));
+	g_queue.push(buffer);
+	g_lock.unlock();
 }
 
 SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
@@ -65,11 +74,40 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 					     SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
 					     &m_recorderQueueInterface);
 
-	result = (*m_recorderQueueInterface)->RegisterCallback(
-                   m_recorderQueueInterface, recorderCallback, this);
+	result = (*m_recorderQueueInterface)->RegisterCallback
+		(m_recorderQueueInterface, recorderCallback, this);
 }
 
 SoundRecorder::~SoundRecorder()
 {
 	
+}
+
+SLRecordItf SoundRecorder::GetInterface()
+{
+	return m_recorderInterface;
+}
+
+SLAndroidSimpleBufferQueueItf SoundRecorder::GetQueueInterface()
+{
+	return m_recorderQueueInterface;
+}
+
+void SoundRecorder::Record()
+{
+	SLresult result = (*m_recorderInterface)->SetRecordState(m_recorderInterface,
+								 SL_RECORDSTATE_RECORDING);
+}
+
+void SoundRecorder::Stop()
+{
+	SLresult result = (*m_recorderInterface)->SetRecordState(m_recorderInterface,
+								 SL_RECORDSTATE_STOPPED);
+
+	result = (*m_recorderQueueInterface)->Clear(m_recorderQueueInterface); 
+}
+
+uint32_t SoundRecorder::GetSamplingRate()
+{
+	return m_samplingRate;
 }
