@@ -7,8 +7,6 @@
 #include <string>
 #include <cmath>
 
-#define SAMPLING_RATE 44100.0
-
 class SilverPush
 {
  public:

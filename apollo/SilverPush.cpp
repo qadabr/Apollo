@@ -25,14 +25,14 @@ void SilverPush::SendMessage(const std::string& message)
 	m_player->Play();
 }
 
-static char getNibble(const std::string& message, size_t index)
+static char getTetrit(const std::string& message, size_t index)
 {
 	/* Выделяем ниббл из байта */
-	char nibble = (message[index / 2] >> ((index % 2) * 4)) & 0xf;
-	LOG_D("Message: \"%s\", char 0x%2x, nibble with index %u is 0x%1x\n",
-	      message.c_str(), message[index / 2], index, nibble);
+	char tetrit = (message[index / 4] >> ((index % 4) * 2)) & 0x3;
+	LOG_D("Message: \"%s\", char 0x%2x, tribit with index %u is 0x%1x\n",
+	      message.c_str(), message[index / 4], index, tetrit);
 	
-	return nibble;
+	return tetrit;
 }
 
 char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
@@ -41,14 +41,14 @@ char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 	size_t fragmentSize = (size_t)(m_duration * m_player->GetSamplingRate() / 1000.0);
 
 	/* Количество фрагментов */
-	size_t fragmentCount = 2 * message.length();
+	size_t fragmentCount = 4 * message.length();
 	
 	/* Синтезируемая волна */
 	double* wave = new double[fragmentSize * fragmentCount];
 
 	size_t x = 0;
 	for (size_t i = 0; i < fragmentCount; ++i) {
-		double freq = getNibble(message, i) * (m_maxFreq - m_minFreq) / 0xf + m_minFreq;
+		double freq = getTetrit(message, i) * (m_maxFreq - m_minFreq) / 4 + m_minFreq;
 		LOG_D("%0.2f Hz\n", freq);
 		for (size_t j = 0; j < fragmentSize; ++j) {
 			double value = 1.0 * x * freq / m_player->GetSamplingRate();
