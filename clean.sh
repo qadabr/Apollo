@@ -1,1 +1,1 @@
-rm -rf binary
+rm -rf solution

@@ -1,5 +1,5 @@
-mkdir -p binary
+mkdir -p solution
 
-cd binary
-cmake ..
-make
+cd solution
+cmake -G "CodeBlocks - Unix Makefiles" ..
+cmake --build .

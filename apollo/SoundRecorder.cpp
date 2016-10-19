@@ -1,6 +1,6 @@
 #include "SoundRecorder.h"
 
-void recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+static void recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 {
 	SoundRecorder* soundRecorder = (SoundRecorder *)context;
 }
