@@ -6,7 +6,7 @@ SilverPush::SilverPush(double minFreq, double maxFreq, size_t duration)
 	  m_duration(duration)
 {
 	m_engine = new SoundEngine();
-	m_player = new SoundPlayer(m_engine);
+	m_player = new SoundPlayer(m_engine, 48000);
 }
 
 SilverPush::~SilverPush()
@@ -17,7 +17,8 @@ SilverPush::~SilverPush()
 
 void SilverPush::SendMessage(const std::string& message)
 {
-	size_t bufferSize = (size_t)(4 * message.length() * m_duration * SAMPLING_RATE / 1000.0);
+	size_t bufferSize = (size_t)(4 * message.length() * m_duration
+				     * m_player->GetSamplingRate() / 1000.0);
 	char* buffer = this->generateWave(message);
 
 	m_player->ClearQueue();
@@ -38,7 +39,7 @@ static char getNibble(const std::string& message, size_t index)
 char* SilverPush::generateWave(const std::string& message)
 {
 	/* Размер фрагмента волны, который должен звучать на одной высоте */
-	size_t fragmentSize = (size_t)(m_duration * SAMPLING_RATE / 1000.0);
+	size_t fragmentSize = (size_t)(m_duration * m_player->GetSamplingRate() / 1000.0);
 
 	/* Количество фрагментов */
 	size_t fragmentCount = 2 * message.length();
@@ -49,9 +50,10 @@ char* SilverPush::generateWave(const std::string& message)
 	size_t x = 0;
 	for (size_t i = 0; i < fragmentCount; ++i) {
 		double freq = getNibble(message, i) * (m_maxFreq - m_minFreq) / 0xf + m_minFreq;
+		LOG_D("%0.2f Hz\n", freq);
 		for (size_t j = 0; j < fragmentSize; ++j) {
-			wave[x] = sin(2 * M_PI * x / SAMPLING_RATE * freq);
-			++x;
+			double value = 1.0 * x * freq / m_player->GetSamplingRate();
+			wave[x++] = 32767 * sin(2 * M_PI * value);
 		}
 	}
 
@@ -60,9 +62,9 @@ char* SilverPush::generateWave(const std::string& message)
 	
 	size_t j = 0;
 	for (size_t i = 0; i < fragmentSize * fragmentCount; ++i) {
-		short val = (short)(wave[i] * 32767);
-		buffer[j++] = (char)(val * 0x00ff);
-		buffer[j++] = (char)((val * 0xff00) >> 8); 
+		short int val = (short int)wave[i];
+		buffer[j++] = (val >> 0) & 0xff;
+		buffer[j++] = (val >> 8) & 0xff; 
 	}
 
 	delete[] wave;

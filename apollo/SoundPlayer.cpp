@@ -1,7 +1,7 @@
 #include "SoundPlayer.h"
 
-SoundPlayer::SoundPlayer(SoundEngine* engine)
-	: m_engine(engine)
+SoundPlayer::SoundPlayer(SoundEngine* engine, uint32_t samplingRate)
+	: m_engine(engine), m_samplingRate(samplingRate)
 {
 	m_buffer = nullptr;
 	m_bufferSize = 0;
@@ -25,7 +25,7 @@ SoundPlayer::SoundPlayer(SoundEngine* engine)
 	SLDataFormat_PCM formatPCM = {
 		SL_DATAFORMAT_PCM,
 		1,
-		SL_SAMPLINGRATE_44_1,
+		m_samplingRate * 1000,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_SPEAKER_FRONT_CENTER,

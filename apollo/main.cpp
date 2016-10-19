@@ -5,11 +5,11 @@
 
 int main(int argc, char** argv)
 {
-	std::string message = std::string({0x77, 0x77, 0x77, 0x77, 0x77});
+	std::string message = "VLAD";
 	
-	SilverPush sp(500, 5000, 1000);
+	SilverPush sp(4000, 10000, 500);
 	sp.SendMessage(message);
-	sleep(message.length() * 2);
+	sleep(message.length());
 	
 	return 0;
 }

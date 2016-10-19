@@ -2,22 +2,26 @@
 #define SOUNDPLAYER_H
 
 #include <cstddef>
+#include <cstdint>
 
 #include "SoundEngine.h"
-
-#define PLAYER_SAMPLING_RATE 41000
 
 class SoundPlayer
 {
  public:
-	SoundPlayer(SoundEngine* engine);
+	SoundPlayer(SoundEngine* engine, uint32_t samplingRate);
 	~SoundPlayer();
  public:
 	void Play();
 	void Stop();
 	void ClearQueue();
 	void EnqueueBuffer(char* buffer, size_t bufferSize);
+	uint32_t GetSamplingRate() {
+		return m_samplingRate;
+	}
  private:
+	uint32_t m_samplingRate;
+	
 	char* m_buffer;
 	size_t m_bufferSize;
 		
