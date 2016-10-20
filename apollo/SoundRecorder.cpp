@@ -8,12 +8,13 @@ void SoundRecorder::recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *con
 void SoundRecorder::Enqueue()
 {
 	LOG_D("Started to enqueue buffer...\n");
-	uint16_t* buffer = new uint16_t[m_samplingRate * CHUNK_SIZE];
 
+	(*m_recorderQueueInterface)->Clear(m_recorderQueueInterface);
+	
+	int16_t* buffer = new int16_t[m_samplingRate * CHUNK_SIZE];
+	(*m_recorderQueueInterface)->Enqueue(m_recorderQueueInterface,
+					     buffer, m_samplingRate * CHUNK_SIZE * sizeof(int16_t));
 	m_lock.lock();
-	(*m_recorderQueueInterface)->Enqueue
-		(m_recorderQueueInterface,
-		 buffer, m_samplingRate * CHUNK_SIZE * sizeof(uint16_t));
 	m_queue.push(buffer);
 	m_lock.unlock();
 
@@ -106,14 +107,19 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 		return;
 	}
 
-	//recorderCallback(NULL, this);
+	recorderCallback(NULL, this);
 	
 	//this->Stop();
 }
 
 SoundRecorder::~SoundRecorder()
 {
-	
+	LOG_D("The queue size is %u\n", m_queue.size());
+	while (not m_queue.empty()) {
+		delete[] m_queue.front();
+		m_queue.pop();
+	}
+	LOG_D("The queue is empty now!\n");
 }
 
 SLRecordItf SoundRecorder::GetInterface()

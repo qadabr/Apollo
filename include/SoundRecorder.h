@@ -8,7 +8,7 @@
 #include "SoundEngine.h"
 
 // Размер куска, сохраняемого в буффер за коллбэк
-#define CHUNK_SIZE 5
+#define CHUNK_SIZE 1
 
 class SoundRecorder
 {
@@ -34,7 +34,7 @@ class SoundRecorder
 	SLAndroidSimpleBufferQueueItf m_recorderQueueInterface;
 
 	std::mutex m_lock;
-	std::queue<uint16_t*> m_queue;
+	std::queue<int16_t*> m_queue;
 };
 
 #endif /* SOUNDRECORDER_H */

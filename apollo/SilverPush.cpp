@@ -65,7 +65,7 @@ char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 	
 	size_t j = 0;
 	for (size_t i = 0; i < fragmentSize * fragmentCount; ++i) {
-		short int val = (short int)wave[i];
+		int16_t val = (int16_t)wave[i];
 		buffer[j++] = (val >> 0) & 0xff;
 		buffer[j++] = (val >> 8) & 0xff; 
 	}
