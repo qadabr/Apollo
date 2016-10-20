@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 	sr.Record();
 
 	while (true) {
-		char* buffer = sr.Dequeue();
+		char* buffer = sr.DequeueBuffer();
 		if (buffer != nullptr) {
 			sp.EnqueueBuffer(buffer, sr.GetBufferSize());
 			sleep(sr.GetChunkSize());

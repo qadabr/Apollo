@@ -3,10 +3,10 @@
 void SoundRecorder::recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 {
 	LOG_I("Callback has been called!\n");
-	((SoundRecorder *)context)->Enqueue();
+	((SoundRecorder *)context)->SaveChunk();
 }
 
-void SoundRecorder::Enqueue()
+void SoundRecorder::SaveChunk()
 {	
 	(*m_recorderQueueInterface)->Clear(m_recorderQueueInterface);
 
@@ -20,7 +20,7 @@ void SoundRecorder::Enqueue()
 	m_lock.unlock();
 }
 
-char* SoundRecorder::Dequeue()
+char* SoundRecorder::DequeueBuffer()
 {
 	int16_t* buffer = nullptr;
 	
@@ -149,7 +149,7 @@ void SoundRecorder::Record()
 		return;
 	}
 
-	this->Enqueue();
+	this->SaveChunk();
 }
 
 void SoundRecorder::Stop()
