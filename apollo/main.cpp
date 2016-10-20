@@ -1,8 +1,8 @@
-#include <cstdint>
-#include <unistd.h>
-
 #include "SoundRecorder.h"
 #include "SoundPlayer.h"
+
+#include <cstdint>
+#include <unistd.h>
 
 int main(int argc, char** argv)
 {

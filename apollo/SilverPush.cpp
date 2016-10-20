@@ -1,16 +1,19 @@
 #include "SilverPush.h"
 
-SilverPush::SilverPush(uint32_t sampleRate, double minFreq, double maxFreq, size_t duration)
+SilverPush::SilverPush(uint32_t samplingRate, double minFreq, double maxFreq, size_t duration)
 	: m_minFreq(minFreq),
 	  m_maxFreq(maxFreq),
-	  m_duration(duration)
+	  m_duration(duration),
+	  m_samplingRate(samplingRate)
 {
 	m_engine = new SoundEngine();
-	m_player = new SoundPlayer(m_engine, sampleRate);
+	m_player = new SoundPlayer(m_engine, samplingRate);
+	m_recorder = new SoundRecorder(m_engine, samplingRate);
 }
 
 SilverPush::~SilverPush()
 {
+	delete m_recorder;
 	delete m_player;
 	delete m_engine;
 }
@@ -23,6 +26,15 @@ void SilverPush::SendMessage(const std::string& message)
 	m_player->ClearQueue();
 	m_player->EnqueueBuffer(buffer, bufferSize);
 	m_player->Play();
+}
+
+std::string SilverPush::ReceiveMessage()
+{
+	std::string message = "";
+
+	
+	
+	return message;
 }
 
 static char getTetrit(const std::string& message, size_t index)
@@ -72,4 +84,23 @@ char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 
 	delete[] wave;
 	return buffer;
+}
+
+double SilverPush::frameFrequency(int16_t* buffer, size_t pointA, size_t pointB)
+{
+	// Размер фрейма в дискретах
+	size_t frameN = pointB - pointA;
+
+	// Количество изменений знака функции на протяжении фрейма
+	size_t n = 0;
+	
+	for (size_t i = pointA; i < pointB - 1; ++i) {
+		// Получим на выходе число со знаком, если изначально знаки у них были разные
+		if (buffer[i] ^ buffer[i + 1] < 0) {
+			++n;
+		}
+	}
+
+	// Средняя частота функции в фрейме
+	return 2.0 * m_samplingRate * frameN / n;
 }
