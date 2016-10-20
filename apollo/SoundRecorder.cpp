@@ -1,7 +1,11 @@
 #include "SoundRecorder.h"
 
+std::mutex SoundRecorder::g_lock;
+std::queue<uint16_t*> SoundRecorder::g_queue;
+
 void SoundRecorder::recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 {
+	LOG_D("callback\n");
 	SoundRecorder* recorder = (SoundRecorder *)context;
 
 	uint16_t* buffer = new uint16_t[recorder->GetSamplingRate() * CHUNK_SIZE];
@@ -12,6 +16,10 @@ void SoundRecorder::recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *con
 		(queueItf, buffer, recorder->GetSamplingRate() * CHUNK_SIZE * sizeof(uint16_t));
 	g_queue.push(buffer);
 	g_lock.unlock();
+
+	for (size_t i = 0; i < recorder->GetSamplingRate() * CHUNK_SIZE; ++i) {
+		LOG_I("buffer[%u] = %u\n", i, buffer[i]);
+	}
 }
 
 SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
@@ -64,18 +72,44 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 								   pAudioRecorderIDs,
 								   pAudioRecorderRequired);
 
+	if (result != SL_RESULT_SUCCESS) {
+		LOG_E("Failed to create the audio recorder!\n");
+		return;
+	}
+	
 	result = (*m_recorder)->Realize(m_recorder, SL_BOOLEAN_FALSE);
+	if (result != SL_RESULT_SUCCESS) {
+		LOG_E("Failed to realize the audio recorder!\n");
+		return;
+	}
 
 	result = (*m_recorder)->GetInterface(m_recorder,
 					     SL_IID_RECORD,
 					     &m_recorderInterface);
 
+	if (result != SL_RESULT_SUCCESS) {
+		LOG_E("Failed getting the recorder interface!\n");
+		return;
+	}
+	
 	result = (*m_recorder)->GetInterface(m_recorder,
 					     SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
 					     &m_recorderQueueInterface);
 
+	if (result != SL_RESULT_SUCCESS) {
+		LOG_E("Failed getting the recorder queue interface!\n");
+		return;
+	}
+
 	result = (*m_recorderQueueInterface)->RegisterCallback
 		(m_recorderQueueInterface, recorderCallback, this);
+
+	if (result != SL_RESULT_SUCCESS) {
+		LOG_E("Failed to register recorder callback!\n");
+		return;
+	}
+	
+	this->Stop();
 }
 
 SoundRecorder::~SoundRecorder()

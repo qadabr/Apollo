@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "SilverPush.h"
+#include "SoundRecorder.h"
 
 int main(int argc, char** argv)
 {
 	std::string message = "Hello";
-	
-	SilverPush sp(48000, 1000, 10000, 100);
-	sp.SendMessage(message);
-	sleep(message.length());
+
+	SoundEngine* engine = new SoundEngine();
+	SoundRecorder sr(engine, 44100);
+	sr.Record();
+
+	sleep(5);
 	
 	return 0;
 }
