@@ -102,5 +102,5 @@ double SilverPush::frameFrequency(int16_t* buffer, size_t pointA, size_t pointB)
 	}
 
 	// Средняя частота функции в фрейме
-	return 2.0 * m_samplingRate * frameN / n;
+	return 0.5 * m_samplingRate * n / frameN;
 }
