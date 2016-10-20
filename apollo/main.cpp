@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <unistd.h>
 
 #include "SoundRecorder.h"
 #include "SoundPlayer.h"
@@ -9,17 +10,20 @@ int main(int argc, char** argv)
 
 	SoundEngine* engine = new SoundEngine();
 
-	SoundRecorder sr(engine, 48000);
-	SoundPlayer sp(engine, 48000);
-
-	sr.Record();
+	SoundRecorder sr(engine, 44100);
+	SoundPlayer sp(engine, 44100);
 	
 	sp.ClearQueue();
 	sp.Play();
 
-	char* buffer = sr.Dequeue();
+	sr.ClearQueue();
+	sr.Record();
+
 	while (true) {
-		sp.EnqueueBuffer(buffer, sr.GetBufferSize());
+		char* buffer = sr.Dequeue();
+		if (buffer != nullptr) {
+			sp.EnqueueBuffer(buffer, sr.GetBufferSize());
+		}
 	}
 	
 	return 0;

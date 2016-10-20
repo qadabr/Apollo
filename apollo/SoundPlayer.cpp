@@ -19,7 +19,7 @@ SoundPlayer::SoundPlayer(SoundEngine* engine, uint32_t samplingRate)
 
 	SLDataLocator_AndroidSimpleBufferQueue locatorBufferQueue = {
 		SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
-		1
+		2
 	};
 	
 	SLDataFormat_PCM formatPCM = {

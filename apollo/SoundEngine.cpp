@@ -22,13 +22,10 @@ SLEngineItf SoundEngine::GetInterface() {
 
 void SoundEngine::createEngine()
 {
-	const SLInterfaceID pIDs[] = { SL_IID_ENGINE };
-	const SLboolean pIDsRequired[]  = { SL_BOOLEAN_TRUE };
-
 	SLresult result = slCreateEngine(&m_soundEngine,
 					 0, NULL,
-					 1, pIDs,
-					 pIDsRequired);
+					 0, NULL,
+					 NULL);
 	
 	if (result != SL_RESULT_SUCCESS) {
 		LOG_E("Failed to create the sound engine!\n");

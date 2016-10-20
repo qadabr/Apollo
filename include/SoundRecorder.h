@@ -4,11 +4,12 @@
 #include <cstdint>
 #include <mutex>
 #include <queue>
+#include <atomic>
 
 #include "SoundEngine.h"
 
 // Размер куска, сохраняемого в буффер за коллбэк
-#define CHUNK_SIZE 10
+#define CHUNK_SIZE 5
 
 class SoundRecorder
 {
@@ -20,7 +21,7 @@ class SoundRecorder
 
 	void Record();
 	void Stop();
-	void ClearBuffer();
+	void ClearQueue();
 	void Enqueue();
 	char* Dequeue();
 
@@ -32,8 +33,6 @@ class SoundRecorder
 	SoundEngine* m_engine;
 	uint32_t m_samplingRate;
 
-	size_t m_bufferSize;
-	
 	SLObjectItf m_recorder;
 	SLRecordItf m_recorderInterface;
 	SLAndroidSimpleBufferQueueItf m_recorderQueueInterface;
