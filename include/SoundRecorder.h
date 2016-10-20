@@ -17,10 +17,10 @@ class SoundRecorder
 	~SoundRecorder();
 
 	SLRecordItf GetInterface();
-	SLAndroidSimpleBufferQueueItf GetQueueInterface();
 
 	void Record();
 	void Stop();
+	void Enqueue();
 
 	uint32_t GetSamplingRate();
  private:
@@ -28,16 +28,13 @@ class SoundRecorder
  private:
 	SoundEngine* m_engine;
 	uint32_t m_samplingRate;
-
-	char* m_buffer;
-	size_t m_bufferSize;
 	
 	SLObjectItf m_recorder;
 	SLRecordItf m_recorderInterface;
 	SLAndroidSimpleBufferQueueItf m_recorderQueueInterface;
 
-	static std::mutex g_lock;
-	static std::queue<uint16_t*> g_queue;
+	std::mutex m_lock;
+	std::queue<uint16_t*> m_queue;
 };
 
 #endif /* SOUNDRECORDER_H */

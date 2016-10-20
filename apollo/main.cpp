@@ -8,7 +8,7 @@ int main(int argc, char** argv)
 	std::string message = "Hello";
 
 	SoundEngine* engine = new SoundEngine();
-	SoundRecorder sr(engine, 44100);
+	SoundRecorder sr(engine, 16000);
 	sr.Record();
 
 	sleep(5);
