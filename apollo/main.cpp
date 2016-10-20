@@ -17,9 +17,9 @@ int main(int argc, char** argv)
 	sp.ClearQueue();
 	sp.Play();
 
-	int16_t* buffer = sr.Dequeue();
+	char* buffer = sr.Dequeue();
 	while (true) {
-		sp.EnqueueBuffer((char*)buffer, sr.GetBufferSize() * sizeof(int16_t));
+		sp.EnqueueBuffer(buffer, sr.GetBufferSize());
 	}
 	
 	return 0;

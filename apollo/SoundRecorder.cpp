@@ -22,7 +22,7 @@ void SoundRecorder::Enqueue()
 	m_lock.unlock();
 }
 
-int16_t* SoundRecorder::Dequeue()
+char* SoundRecorder::Dequeue()
 {
 	int16_t* buffer = nullptr;
 	
@@ -33,7 +33,7 @@ int16_t* SoundRecorder::Dequeue()
 	}
 	m_lock.unlock();
 
-	return buffer;
+	return (char*)buffer;
 }
 
 SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
@@ -134,7 +134,7 @@ SLRecordItf SoundRecorder::GetInterface()
 
 size_t SoundRecorder::GetBufferSize()
 {
-	return m_bufferSize;
+	return m_bufferSize * sizeof(int16_t);
 }
 
 void SoundRecorder::Record()
