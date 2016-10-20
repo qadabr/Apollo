@@ -10,21 +10,35 @@ void SoundRecorder::Enqueue()
 	LOG_D("Started to enqueue buffer...\n");
 
 	(*m_recorderQueueInterface)->Clear(m_recorderQueueInterface);
+
+	m_bufferSize = m_samplingRate * CHUNK_SIZE;
+	int16_t* buffer = new int16_t[m_bufferSize];
 	
-	int16_t* buffer = new int16_t[m_samplingRate * CHUNK_SIZE];
 	(*m_recorderQueueInterface)->Enqueue(m_recorderQueueInterface,
-					     buffer, m_samplingRate * CHUNK_SIZE * sizeof(int16_t));
+					     buffer,
+					     m_bufferSize * sizeof(int16_t));
 	m_lock.lock();
 	m_queue.push(buffer);
 	m_lock.unlock();
+}
 
-	for (size_t i = 0; i < m_samplingRate * CHUNK_SIZE; ++i) {
-		LOG_I("buffer[%u] = %u\n", i, buffer[i]);
+int16_t* SoundRecorder::Dequeue()
+{
+	int16_t* buffer = nullptr;
+	
+	m_lock.lock();
+	if (not m_queue.empty()) {
+		buffer = m_queue.front();
+		m_queue.pop();
 	}
+	m_lock.unlock();
+
+	return buffer;
 }
 
 SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
-	: m_engine(engine), m_samplingRate(samplingRate)
+	: m_engine(engine),
+	  m_samplingRate(samplingRate)
 {
 	SLDataLocator_IODevice locatorDevice = {
 		SL_DATALOCATOR_IODEVICE,
@@ -106,25 +120,21 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 		LOG_E("Failed to register the recorder callback!\n");
 		return;
 	}
-
-	recorderCallback(NULL, this);
-	
-	//this->Stop();
 }
 
 SoundRecorder::~SoundRecorder()
 {
-	LOG_D("The queue size is %u\n", m_queue.size());
-	while (not m_queue.empty()) {
-		delete[] m_queue.front();
-		m_queue.pop();
-	}
-	LOG_D("The queue is empty now!\n");
+	this->ClearBuffer();
 }
 
 SLRecordItf SoundRecorder::GetInterface()
 {
 	return m_recorderInterface;
+}
+
+size_t SoundRecorder::GetBufferSize()
+{
+	return m_bufferSize;
 }
 
 void SoundRecorder::Record()
@@ -135,6 +145,8 @@ void SoundRecorder::Record()
 		LOG_E("Failed to set record state to recording!\n");
 		return;
 	}
+
+	this->Enqueue();
 }
 
 void SoundRecorder::Stop()
@@ -152,6 +164,23 @@ void SoundRecorder::Stop()
 		LOG_E("Failed to clear the recorder queue!\n");
 		return;
 	}
+}
+
+void SoundRecorder::ClearBuffer()
+{
+	SLresult result = (*m_recorderQueueInterface)->Clear(m_recorderQueueInterface);
+	if (result != SL_RESULT_SUCCESS) {
+		LOG_E("Failed to clear the recorder queue!\n");
+		return;
+	}
+
+	LOG_D("The queue size is %u\n", m_queue.size());
+	while (not m_queue.empty()) {
+		int16_t* buffer = m_queue.front();
+		delete[] buffer;
+		m_queue.pop();
+	}
+	LOG_D("The queue is empty now!\n");
 }
 
 uint32_t SoundRecorder::GetSamplingRate()
