@@ -8,7 +8,7 @@
 #include "SoundEngine.h"
 
 // Размер куска, сохраняемого в буффер за коллбэк
-#define PIECE_SIZE 5
+#define CHUNK_SIZE 5
 
 class SoundRecorder
 {

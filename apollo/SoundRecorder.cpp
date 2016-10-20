@@ -4,12 +4,12 @@ void SoundRecorder::recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *con
 {
 	SoundRecorder* recorder = (SoundRecorder *)context;
 
-	uint16_t* buffer = new uint16_t[recorder->GetSamplingRate() * PIECE_SIZE];
+	uint16_t* buffer = new uint16_t[recorder->GetSamplingRate() * CHUNK_SIZE];
 	SLAndroidSimpleBufferQueueItf queueItf = recorder->GetQueueInterface();
 
 	g_lock.lock();
 	(*queueItf)->Enqueue
-		(queueItf, buffer, recorder->GetSamplingRate() * PIECE_SIZE * sizeof(uint16_t));
+		(queueItf, buffer, recorder->GetSamplingRate() * CHUNK_SIZE * sizeof(uint16_t));
 	g_queue.push(buffer);
 	g_lock.unlock();
 }
