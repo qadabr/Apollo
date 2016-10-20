@@ -23,6 +23,8 @@ int main(int argc, char** argv)
 		char* buffer = sr.Dequeue();
 		if (buffer != nullptr) {
 			sp.EnqueueBuffer(buffer, sr.GetBufferSize());
+			sleep(sr.GetChunkSize());
+			delete[] buffer;
 		}
 	}
 	

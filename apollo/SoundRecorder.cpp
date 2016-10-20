@@ -135,6 +135,11 @@ size_t SoundRecorder::GetBufferSize()
 	return m_samplingRate * CHUNK_SIZE * sizeof(int16_t);
 }
 
+size_t SoundRecorder::GetChunkSize()
+{
+	return CHUNK_SIZE;
+}
+
 void SoundRecorder::Record()
 {
 	SLresult result = (*m_recorderInterface)->SetRecordState(m_recorderInterface,

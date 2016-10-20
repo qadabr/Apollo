@@ -27,6 +27,7 @@ class SoundRecorder
 
 	uint32_t GetSamplingRate();
 	size_t GetBufferSize();
+	size_t GetChunkSize();
  private:
 	static void recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
  private:
