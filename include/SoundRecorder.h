@@ -8,8 +8,11 @@
 
 #include "SoundEngine.h"
 
+// Количество буфферов
+#define RECORDER_BUFFERS_COUNT 2
+
 // Размер куска, сохраняемого в буффер за коллбэк
-#define CHUNK_SIZE 5
+#define CHUNK_SIZE 4
 
 class SoundRecorder
 {
@@ -27,7 +30,7 @@ class SoundRecorder
 
 	uint32_t GetSamplingRate();
 	size_t GetBufferSize();
-	size_t GetChunkSize();
+	size_t GetExchangeTime();
  private:
 	static void recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
  private:

@@ -1,12 +1,16 @@
 #include "SilverPush.h"
 
-SilverPush::SilverPush(uint32_t samplingRate, double minFreq, double maxFreq, size_t duration)
+SilverPush::SilverPush(SoundEngine* engine,
+		       uint32_t samplingRate,
+		       double minFreq,
+		       double maxFreq,
+		       size_t duration)
 	: m_minFreq(minFreq),
 	  m_maxFreq(maxFreq),
 	  m_duration(duration),
-	  m_samplingRate(samplingRate)
+	  m_samplingRate(samplingRate),
+	  m_engine(engine)
 {
-	m_engine = new SoundEngine();
 	m_player = new SoundPlayer(m_engine, samplingRate);
 	m_recorder = new SoundRecorder(m_engine, samplingRate);
 }
@@ -32,7 +36,28 @@ std::string SilverPush::ReceiveMessage()
 {
 	std::string message = "";
 
+	m_recorder->ClearQueue();
+	m_recorder->Record();
 	
+	while (true) {
+		int16_t* buffer = (int16_t*)m_recorder->DequeueBuffer();
+		size_t bufferSize = m_recorder->GetBufferSize() / sizeof(int16_t);
+		
+		if (buffer == nullptr) {
+			continue;
+		}
+
+		size_t frameN = m_duration * m_samplingRate / 1000;
+		size_t step = frameN;
+		for (size_t i = 0; i < bufferSize; i += step) {
+			double freq = frameFrequency(buffer, i, i + frameN);
+			LOG_I("Frequency %f\n", freq);
+		}
+		
+		delete[] buffer;
+
+		sleep(m_recorder->GetExchangeTime());
+	}
 	
 	return message;
 }
@@ -96,7 +121,7 @@ double SilverPush::frameFrequency(int16_t* buffer, size_t pointA, size_t pointB)
 	
 	for (size_t i = pointA; i < pointB - 1; ++i) {
 		// Получим на выходе число со знаком, если изначально знаки у них были разные
-		if (buffer[i] ^ buffer[i + 1] < 0) {
+		if (buffer[i] * buffer[i + 1] < 0) {
 			++n;
 		}
 	}

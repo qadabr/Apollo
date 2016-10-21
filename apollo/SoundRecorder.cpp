@@ -52,7 +52,7 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 
 	SLDataLocator_AndroidSimpleBufferQueue locatorBufferQueue = {
 		SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
-		2
+		RECORDER_BUFFERS_COUNT
 	};
 
 	SLDataFormat_PCM formatPCM = {
@@ -135,7 +135,7 @@ size_t SoundRecorder::GetBufferSize()
 	return m_samplingRate * CHUNK_SIZE * sizeof(int16_t);
 }
 
-size_t SoundRecorder::GetChunkSize()
+size_t SoundRecorder::GetExchangeTime()
 {
 	return CHUNK_SIZE;
 }

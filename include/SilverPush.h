@@ -7,11 +7,16 @@
 
 #include <string>
 #include <cmath>
+#include <unistd.h>
 
 class SilverPush
 {
  public:
-	SilverPush(uint32_t samplingRate, double minFreq, double maxFreq, size_t duration);
+	SilverPush(SoundEngine* engine,
+		   uint32_t samplingRate,
+		   double minFreq,
+		   double maxFreq,
+		   size_t duration);
 	~SilverPush();
  public:
 	void SendMessage(const std::string& message);
