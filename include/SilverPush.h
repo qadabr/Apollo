@@ -20,10 +20,11 @@ class SilverPush
 	~SilverPush();
  public:
 	void SendMessage(const std::string& message);
-	std::string ReceiveMessage();
+	void ReceiveMessage();
  private:
 	char* generateWave(const std::string& message, size_t* bufferSize);
-	double frameFrequency(int16_t* buffer, size_t pointA, size_t pointB);
+	double frequencyFilter(double freq);
+	double frameFrequency(int16_t* buffer, size_t x0, size_t frameN);
  private:
 	uint32_t m_samplingRate;
 	double m_minFreq;

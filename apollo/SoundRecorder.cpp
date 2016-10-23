@@ -122,7 +122,7 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 
 SoundRecorder::~SoundRecorder()
 {
-	this->ClearQueue();
+	//this->ClearQueue();
 }
 
 SLRecordItf SoundRecorder::GetInterface()
@@ -135,7 +135,7 @@ size_t SoundRecorder::GetBufferSize()
 	return m_samplingRate * CHUNK_SIZE * sizeof(int16_t);
 }
 
-size_t SoundRecorder::GetExchangeTime()
+size_t SoundRecorder::GetSwapTime()
 {
 	return CHUNK_SIZE;
 }
@@ -150,6 +150,7 @@ void SoundRecorder::Record()
 	}
 
 	this->SaveChunk();
+	delete[] this->DequeueBuffer();
 }
 
 void SoundRecorder::Stop()

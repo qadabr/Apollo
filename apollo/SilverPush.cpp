@@ -19,7 +19,6 @@ SilverPush::~SilverPush()
 {
 	delete m_recorder;
 	delete m_player;
-	delete m_engine;
 }
 
 void SilverPush::SendMessage(const std::string& message)
@@ -32,13 +31,49 @@ void SilverPush::SendMessage(const std::string& message)
 	m_player->Play();
 }
 
-std::string SilverPush::ReceiveMessage()
+void addByteToMessage(std::string& message, char* messageByte)
 {
-	std::string message = "";
+	char result = 0;
+	for (size_t i = 0; i < 8; ++i) {
+		result |= messageByte[i] << (7 - i);
+	}
 
+	message += result;
+}
+
+double SilverPush::frequencyFilter(double freq)
+{
+	double error = 300;
+	
+	if (std::abs(freq - m_minFreq) <= error) {
+		return m_minFreq;
+	}
+
+	if (std::abs(freq - m_maxFreq) <= error) {
+		return m_maxFreq;
+	}
+
+	return 0.0;
+}
+
+enum FREQ { ZERO, MIN_FREQ, MAX_FREQ, FREQ_SIZE};
+
+void SilverPush::ReceiveMessage()
+{
 	m_recorder->ClearQueue();
 	m_recorder->Record();
-	
+
+	const size_t frameN = m_duration * m_samplingRate / 1000;
+
+       	// Предыдущая частота
+	double lastFreq = 0.0;
+
+	// Шаг смещения в частях окна
+	size_t frameStep = 2;
+
+	// Количество подряд фиксаций одной и той же частоты
+	size_t hits[FREQ_SIZE] = { 0 };
+
 	while (true) {
 		int16_t* buffer = (int16_t*)m_recorder->DequeueBuffer();
 		size_t bufferSize = m_recorder->GetBufferSize() / sizeof(int16_t);
@@ -47,29 +82,100 @@ std::string SilverPush::ReceiveMessage()
 			continue;
 		}
 
-		size_t frameN = m_duration * m_samplingRate / 1000;
-		size_t step = frameN;
-		for (size_t i = 0; i < bufferSize; i += step) {
-			double freq = frameFrequency(buffer, i, i + frameN);
-			LOG_I("Frequency %f\n", freq);
+		for (size_t i = 0; i < bufferSize - frameN; ) {
+			double freq = frequencyFilter(frameFrequency(buffer, i, frameN));
+			LOG_D("%f", freq);
+			
+			if (std::abs(freq - m_minFreq) < 0.1) {
+				hits[ZERO] = 0;
+				++hits[MIN_FREQ];
+			}
+
+			if (std::abs(freq - m_maxFreq) < 0.1) {
+				hits[ZERO] = 0;
+				++hits[MAX_FREQ];
+			}
+
+			// Если наткнулись на 0
+			if (std::abs(freq) < 0.1) {
+				for (size_t i = 0; i < (hits[MIN_FREQ] + 1) / frameStep; ++i) {
+					printf("%u", 0);
+				}
+
+				for (size_t i = 0; i < (hits[MAX_FREQ] + 1) / frameStep; ++i) {
+					printf("%u", 1);
+				}
+
+				hits[MIN_FREQ] = hits[MAX_FREQ] = 0;
+				++hits[ZERO];
+			}
+
+			lastFreq = freq;
+			i += frameN / frameStep;
+		}
+
+		// Ряд в пять нулей подряд говорит о том, что, скорее всего, принимать нечего
+		if (hits[ZERO] >= 5) {
+			break;
+		}
+
+		delete[] buffer;
+	}	
+	
+	/*
+	while (markCounter < 5) {
+		int16_t* buffer = (int16_t*)m_recorder->DequeueBuffer();
+		size_t bufferSize = m_recorder->GetBufferSize() / sizeof(int16_t);
+		
+		if (buffer == nullptr) {
+			continue;
+		}
+		
+		for (size_t i = 0; i < bufferSize - frameN;) {
+			double freq = frameFrequency(buffer, i, frameN);
+			freq = frequencyFilter(freq);
+
+			LOG_D("Frequency: %f", freq);
+			
+			if (std::abs(freq) < 0.1) {
+				// Количество бит, полученных за комбо-серию
+				size_t bits = (hits + 1) / 2;
+				for (size_t i = 0; i < bits; ++i) {
+					if (std::abs(lastFreq - m_minFreq) < 0.1) {
+						fprintf(file, "%u", 0);
+					}
+
+					if (std::abs(lastFreq - m_maxFreq) < 0.1) {
+						fprintf(file, "%u", 1);
+					}
+				}
+				
+				++markCounter;
+				hits = 0;
+			}
+
+			// Если частота все та же, то увеличиваем нашу комбо-серию
+			if (std::abs(lastFreq - freq) < 0.1) {
+				++hits;
+			}
+
+			lastFreq = freq;
+			
+			// Съезжаем на пол окна
+			i += frameN / 2;
 		}
 		
 		delete[] buffer;
-
-		sleep(m_recorder->GetExchangeTime());
+		sleep(m_recorder->GetSwapTime());
 	}
-	
-	return message;
+	*/
+
+	printf("\n");
 }
 
-static char getTetrit(const std::string& message, size_t index)
+inline int getBit(const std::string& message, size_t index)
 {
-	/* Выделяем тетрит из байта */
-	char tetrit = (message[index / 4] >> ((index % 4) * 2)) & 0x3;
-	LOG_D("Message: \"%s\", char 0x%2x, tribit with index %u is 0x%1x\n",
-	      message.c_str(), message[index / 4], index, tetrit);
-	
-	return tetrit;
+	return message[index / 8] & (1 << (7 - index) % 8) ? 1 : 0;
 }
 
 char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
@@ -77,24 +183,26 @@ char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 	/* Размер фрагмента волны, который должен звучать на одной высоте */
 	size_t fragmentSize = (size_t)(m_duration * m_player->GetSamplingRate() / 1000.0);
 
-	/* Количество тетритов в байте */
-	size_t fragmentCount = 4 * message.length();
+	/* Количество битов в байте */
+	size_t fragmentCount = 8 * message.length();
 	
 	/* Синтезируемая волна */
 	double* wave = new double[fragmentSize * fragmentCount];
 
+	printf("Generated: ");
 	size_t x = 0;
 	for (size_t i = 0; i < fragmentCount; ++i) {
-		double freq = getTetrit(message, i) * (m_maxFreq - m_minFreq) / 3.0 + m_minFreq;
-		LOG_D("%0.2f Hz\n", freq);
+		double freq = getBit(message, i) * (m_maxFreq - m_minFreq) + m_minFreq;
+		//LOG_D("%0.2f Hz\n", freq);
+		printf("%u", getBit(message, i));
 		for (size_t j = 0; j < fragmentSize; ++j) {
 			double value = 1.0 * x * freq / m_player->GetSamplingRate();
 			// Синусоида
 			wave[x++] = 32767 * sin(2 * M_PI * value);
-			// Пила
-			// wave[x++] = 32767 * (fmod(value, 1.0) * 2 - 1);
 		}
 	}
+
+	printf("\n");
 
 	/* Конвертируем в массив байт */
 	*bufferSize = fragmentSize * fragmentCount * 2;
@@ -111,15 +219,15 @@ char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 	return buffer;
 }
 
-double SilverPush::frameFrequency(int16_t* buffer, size_t pointA, size_t pointB)
+double SilverPush::frameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 {
 	// Размер фрейма в дискретах
-	size_t frameN = pointB - pointA;
+	size_t x1 = x0 + frameN;
 
 	// Количество изменений знака функции на протяжении фрейма
 	size_t n = 0;
 	
-	for (size_t i = pointA; i < pointB - 1; ++i) {
+	for (size_t i = x0; i < x0 + frameN; ++i) {
 		// Получим на выходе число со знаком, если изначально знаки у них были разные
 		if (buffer[i] * buffer[i + 1] < 0) {
 			++n;

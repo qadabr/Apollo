@@ -87,7 +87,7 @@ void SoundPlayer::Stop()
 void SoundPlayer::ClearQueue()
 {
 	if (m_bufferSize != 0) {
-		delete m_buffer;
+		delete[] m_buffer;
 		m_bufferSize = 0;
 	}
 	
