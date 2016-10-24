@@ -59,6 +59,11 @@ double SilverPush::frequencyFilter(double freq)
 
 enum FREQ { ZERO, MIN_FREQ, MAX_FREQ, FREQ_SIZE};
 
+inline size_t bitsInFrame(size_t hits, size_t frameStep)
+{
+	return hits ? 1 + hits / frameStep : 0;
+}
+
 void SilverPush::ReceiveMessage()
 {
 	m_recorder = new SoundRecorder(m_engine, m_samplingRate);
@@ -71,7 +76,7 @@ void SilverPush::ReceiveMessage()
 	double lastFreq = 0.0;
 
 	// Шаг смещения в частях окна
-	size_t frameStep = 2;
+	size_t frameStep = 4;
 
 	// Количество подряд фиксаций одной и той же частоты
 	size_t hits[FREQ_SIZE] = { 0 };
@@ -100,11 +105,11 @@ void SilverPush::ReceiveMessage()
 
 			// Если наткнулись на 0
 			if (std::abs(freq) < 0.1) {
-				for (size_t i = 0; i < (hits[MIN_FREQ] + 1) / frameStep; ++i) {
+				for (size_t i = 0; i < bitsInFrame(hits[MIN_FREQ], frameStep); ++i) {
 					printf("%u", 0);
 				}
 
-				for (size_t i = 0; i < (hits[MAX_FREQ] + 1) / frameStep; ++i) {
+				for (size_t i = 0; i < bitsInFrame(hits[MAX_FREQ], frameStep); ++i) {
 					printf("%u", 1);
 				}
 
