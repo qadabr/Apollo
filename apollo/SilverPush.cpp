@@ -61,7 +61,7 @@ enum FREQ { ZERO, MIN_FREQ, MAX_FREQ, FREQ_SIZE};
 
 inline size_t bitsInFrame(size_t hits, size_t frameStep)
 {
-	return hits ? 1 + hits / frameStep : 0;
+	return hits ? 1 + (hits - 1) / frameStep : 0;
 }
 
 void SilverPush::ReceiveMessage()
