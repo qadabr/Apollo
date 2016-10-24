@@ -19,7 +19,8 @@ class SilverPush
 		   size_t duration);
 	~SilverPush();
  public:
-	void SendMessage(const std::string& message);
+	void PushMessage(const std::string& message);
+	void Send();
 	void ReceiveMessage();
  private:
 	char* generateWave(const std::string& message, size_t* bufferSize);

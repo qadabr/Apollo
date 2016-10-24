@@ -21,13 +21,16 @@ SilverPush::~SilverPush()
 	delete m_player;
 }
 
-void SilverPush::SendMessage(const std::string& message)
+void SilverPush::PushMessage(const std::string& message)
 {
 	size_t bufferSize;
 	char* buffer = this->generateWave(message, &bufferSize);
 
-	m_player->ClearQueue();
 	m_player->EnqueueBuffer(buffer, bufferSize);
+}
+
+void SilverPush::Send()
+{
 	m_player->Play();
 }
 
@@ -122,54 +125,6 @@ void SilverPush::ReceiveMessage()
 		delete[] buffer;
 	}	
 	
-	/*
-	while (markCounter < 5) {
-		int16_t* buffer = (int16_t*)m_recorder->DequeueBuffer();
-		size_t bufferSize = m_recorder->GetBufferSize() / sizeof(int16_t);
-		
-		if (buffer == nullptr) {
-			continue;
-		}
-		
-		for (size_t i = 0; i < bufferSize - frameN;) {
-			double freq = frameFrequency(buffer, i, frameN);
-			freq = frequencyFilter(freq);
-
-			LOG_D("Frequency: %f", freq);
-			
-			if (std::abs(freq) < 0.1) {
-				// Количество бит, полученных за комбо-серию
-				size_t bits = (hits + 1) / 2;
-				for (size_t i = 0; i < bits; ++i) {
-					if (std::abs(lastFreq - m_minFreq) < 0.1) {
-						fprintf(file, "%u", 0);
-					}
-
-					if (std::abs(lastFreq - m_maxFreq) < 0.1) {
-						fprintf(file, "%u", 1);
-					}
-				}
-				
-				++markCounter;
-				hits = 0;
-			}
-
-			// Если частота все та же, то увеличиваем нашу комбо-серию
-			if (std::abs(lastFreq - freq) < 0.1) {
-				++hits;
-			}
-
-			lastFreq = freq;
-			
-			// Съезжаем на пол окна
-			i += frameN / 2;
-		}
-		
-		delete[] buffer;
-		sleep(m_recorder->GetSwapTime());
-	}
-	*/
-
 	printf("\n");
 }
 
