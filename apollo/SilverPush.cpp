@@ -12,12 +12,10 @@ SilverPush::SilverPush(SoundEngine* engine,
 	  m_engine(engine)
 {
 	m_player = new SoundPlayer(m_engine, samplingRate);
-	m_recorder = new SoundRecorder(m_engine, samplingRate);
 }
 
 SilverPush::~SilverPush()
 {
-	delete m_recorder;
 	delete m_player;
 }
 
@@ -63,6 +61,7 @@ enum FREQ { ZERO, MIN_FREQ, MAX_FREQ, FREQ_SIZE};
 
 void SilverPush::ReceiveMessage()
 {
+	m_recorder = new SoundRecorder(m_engine, m_samplingRate);
 	m_recorder->ClearQueue();
 	m_recorder->Record();
 
@@ -124,8 +123,9 @@ void SilverPush::ReceiveMessage()
 
 		delete[] buffer;
 	}	
-	
+
 	printf("\n");
+	delete m_recorder;
 }
 
 inline int getBit(const std::string& message, size_t index)

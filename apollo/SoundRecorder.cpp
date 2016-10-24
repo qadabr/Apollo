@@ -122,7 +122,8 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 
 SoundRecorder::~SoundRecorder()
 {
-	//this->ClearQueue();
+	this->Stop();
+	(*m_recorder)->Destroy(m_recorder);
 }
 
 SLRecordItf SoundRecorder::GetInterface()
