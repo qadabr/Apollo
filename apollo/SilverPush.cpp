@@ -11,7 +11,7 @@ SilverPush::SilverPush(SoundEngine* engine,
 	  m_samplingRate(samplingRate),
 	  m_engine(engine)
 {
-	m_player = new SoundPlayer(m_engine, samplingRate);
+	m_player = new SoundPlayer(m_engine, m_samplingRate);
 }
 
 SilverPush::~SilverPush()
@@ -66,7 +66,7 @@ inline size_t bitsInFrame(size_t hits, size_t frameStep)
 
 void SilverPush::ReceiveMessage()
 {
-	m_recorder = new SoundRecorder(m_engine, m_samplingRate);
+	m_recorder = new SoundRecorder(m_engine, m_samplingRate, 4);
 	m_recorder->ClearQueue();
 	m_recorder->Record();
 
@@ -76,7 +76,7 @@ void SilverPush::ReceiveMessage()
 	double lastFreq = 0.0;
 
 	// Шаг смещения в частях окна
-	size_t frameStep = 4;
+	size_t frameStep = 8;
 
 	// Количество подряд фиксаций одной и той же частоты
 	size_t hits[FREQ_SIZE] = { 0 };
@@ -149,16 +149,23 @@ char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 	/* Синтезируемая волна */
 	double* wave = new double[fragmentSize * fragmentCount];
 
-	printf("Generated: ");
 	size_t x = 0;
+	double angle = 0;
+
+	printf("Generated: ");
 	for (size_t i = 0; i < fragmentCount; ++i) {
 		double freq = getBit(message, i) * (m_maxFreq - m_minFreq) + m_minFreq;
-		//LOG_D("%0.2f Hz\n", freq);
 		printf("%u", getBit(message, i));
+
 		for (size_t j = 0; j < fragmentSize; ++j) {
-			double value = 1.0 * x * freq / m_player->GetSamplingRate();
-			// Синусоида
-			wave[x++] = 32767 * sin(2 * M_PI * value);
+			double angularFrequency = 2 * M_PI * freq / m_player->GetSamplingRate();
+
+			wave[x++] = 32767 * sin(angle);
+			angle += angularFrequency;
+
+			if (angle > 2 * M_PI) {
+				angle -= 2 * M_PI;
+			}
 		}
 	}
 

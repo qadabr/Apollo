@@ -8,12 +8,12 @@ void SoundRecorder::recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *con
 
 void SoundRecorder::SaveChunk()
 {	
-	(*m_recorderQueueInterface)->Clear(m_recorderQueueInterface);
+	size_t bufferSize = m_samplingRate * m_chunkSize * sizeof(int16_t);
+	int16_t* buffer = new int16_t[bufferSize];
 
-	int16_t* buffer = new int16_t[m_samplingRate * CHUNK_SIZE * sizeof(int16_t)];
+	(*m_recorderQueueInterface)->Clear(m_recorderQueueInterface);
 	(*m_recorderQueueInterface)->Enqueue(m_recorderQueueInterface,
-					     buffer,
-					     m_samplingRate * CHUNK_SIZE * sizeof(int16_t));
+					     buffer, bufferSize);
 
 	m_lock.lock();
 	m_queue.push(buffer);
@@ -34,9 +34,10 @@ char* SoundRecorder::DequeueBuffer()
 	return (char*)buffer;
 }
 
-SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
+SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate, uint32_t chunkSize)
 	: m_engine(engine),
-	  m_samplingRate(samplingRate)
+	  m_samplingRate(samplingRate),
+	  m_chunkSize(chunkSize)
 {
 	SLDataLocator_IODevice locatorDevice = {
 		SL_DATALOCATOR_IODEVICE,
@@ -52,7 +53,7 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 
 	SLDataLocator_AndroidSimpleBufferQueue locatorBufferQueue = {
 		SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
-		RECORDER_BUFFERS_COUNT
+		2
 	};
 
 	SLDataFormat_PCM formatPCM = {
@@ -133,12 +134,12 @@ SLRecordItf SoundRecorder::GetInterface()
 
 size_t SoundRecorder::GetBufferSize()
 {
-	return m_samplingRate * CHUNK_SIZE * sizeof(int16_t);
+	return m_samplingRate * m_chunkSize * sizeof(int16_t);
 }
 
-size_t SoundRecorder::GetSwapTime()
+useconds_t SoundRecorder::GetSwapTimeMicrosecond()
 {
-	return CHUNK_SIZE;
+	return m_chunkSize * 10e6;
 }
 
 void SoundRecorder::Record()
