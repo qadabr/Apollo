@@ -94,10 +94,10 @@ void SoundPlayer::ClearQueue()
 	(*m_bufferQueueInterface)->Clear(m_bufferQueueInterface);
 }
 
-void SoundPlayer::EnqueueBuffer(char* buffer, size_t bufferSize)
+void SoundPlayer::EnqueueBuffer(int16_t* buffer, size_t bufferSize)
 {
 	(*m_bufferQueueInterface)->Enqueue(m_bufferQueueInterface,
-					   buffer, bufferSize);
+					   buffer, bufferSize * sizeof(int16_t));
 }
 
 uint32_t SoundPlayer::GetSamplingRate()

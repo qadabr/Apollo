@@ -15,7 +15,7 @@ class SoundPlayer
 	void Play();
 	void Stop();
 	void ClearQueue();
-	void EnqueueBuffer(char* buffer, size_t bufferSize);
+	void EnqueueBuffer(int16_t* buffer, size_t bufferSize);
 	uint32_t GetSamplingRate();	
  private:
 	SoundEngine* m_engine;

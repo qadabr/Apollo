@@ -4,6 +4,7 @@
 #include "SoundEngine.h"
 #include "SoundPlayer.h"
 #include "SoundRecorder.h"
+#include "Fourier.h"
 
 #include <string>
 #include <cmath>
@@ -23,7 +24,7 @@ class SilverPush
 	void Send();
 	void ReceiveMessage();
  private:
-	char* generateWave(const std::string& message, size_t* bufferSize);
+	int16_t* generateWave(const std::string& message, size_t* bufferSize);
 	double frequencyFilter(double freq);
 	double frameFrequency(int16_t* buffer, size_t x0, size_t frameN);
  private:

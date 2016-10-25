@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <mutex>
 #include <queue>
-#include <atomic>
 
 #include "SoundEngine.h"
 

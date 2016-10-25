@@ -22,7 +22,7 @@ SilverPush::~SilverPush()
 void SilverPush::PushMessage(const std::string& message)
 {
 	size_t bufferSize;
-	char* buffer = this->generateWave(message, &bufferSize);
+	int16_t* buffer = this->generateWave(message, &bufferSize);
 
 	m_player->EnqueueBuffer(buffer, bufferSize);
 }
@@ -64,6 +64,17 @@ inline size_t bitsInFrame(size_t hits, size_t frameStep)
 	return hits ? 1 + (hits - 1) / frameStep : 0;
 }
 
+static void transformSignal(int16_t* data, double* output, size_t length)
+{
+	double input[length];
+
+	for (size_t i = 0; i < length; ++i) {
+		input[i] = data[i] / 32767.0;
+	}
+	
+	FFTAnalysis(input, output, length, length);
+}
+
 void SilverPush::ReceiveMessage()
 {
 	m_recorder = new SoundRecorder(m_engine, m_samplingRate, 4);
@@ -84,14 +95,14 @@ void SilverPush::ReceiveMessage()
 	while (true) {
 		int16_t* buffer = (int16_t*)m_recorder->DequeueBuffer();
 		size_t bufferSize = m_recorder->GetBufferSize() / sizeof(int16_t);
-		
+
 		if (buffer == nullptr) {
 			continue;
 		}
 
 		for (size_t i = 0; i < bufferSize - frameN; ) {
 			double freq = frequencyFilter(frameFrequency(buffer, i, frameN));
-			LOG_D("%f", freq);
+			//LOG_D("%f", freq);
 			
 			if (std::abs(freq - m_minFreq) < 0.1) {
 				hits[ZERO] = 0;
@@ -121,12 +132,12 @@ void SilverPush::ReceiveMessage()
 			i += frameN / frameStep;
 		}
 
+		delete[] buffer;
+		
 		// Ряд в пять нулей подряд говорит о том, что, скорее всего, принимать нечего
 		if (hits[ZERO] >= 5) {
 			break;
 		}
-
-		delete[] buffer;
 	}	
 
 	printf("\n");
@@ -138,16 +149,18 @@ inline int getBit(const std::string& message, size_t index)
 	return message[index / 8] & (1 << (7 - index) % 8) ? 1 : 0;
 }
 
-char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
+int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 {
 	/* Размер фрагмента волны, который должен звучать на одной высоте */
 	size_t fragmentSize = (size_t)(m_duration * m_player->GetSamplingRate() / 1000.0);
 
 	/* Количество битов в байте */
 	size_t fragmentCount = 8 * message.length();
+
+	*bufferSize = fragmentSize * fragmentCount;
 	
 	/* Синтезируемая волна */
-	double* wave = new double[fragmentSize * fragmentCount];
+	int16_t* wave = new int16_t[*bufferSize];
 
 	size_t x = 0;
 	double angle = 0;
@@ -160,7 +173,7 @@ char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 		for (size_t j = 0; j < fragmentSize; ++j) {
 			double angularFrequency = 2 * M_PI * freq / m_player->GetSamplingRate();
 
-			wave[x++] = 32767 * sin(angle);
+			wave[x++] = (int16_t)(32767 * sin(angle));
 			angle += angularFrequency;
 
 			if (angle > 2 * M_PI) {
@@ -168,22 +181,9 @@ char* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
 			}
 		}
 	}
-
 	printf("\n");
 
-	/* Конвертируем в массив байт */
-	*bufferSize = fragmentSize * fragmentCount * 2;
-	char* buffer = new char[*bufferSize];
-	
-	size_t j = 0;
-	for (size_t i = 0; i < fragmentSize * fragmentCount; ++i) {
-		int16_t val = (int16_t)wave[i];
-		buffer[j++] = (val >> 0) & 0xff;
-		buffer[j++] = (val >> 8) & 0xff; 
-	}
-
-	delete[] wave;
-	return buffer;
+	return wave;
 }
 
 double SilverPush::frameFrequency(int16_t* buffer, size_t x0, size_t frameN)
