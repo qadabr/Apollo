@@ -21,9 +21,6 @@ class SoundPlayer
 	SoundEngine* m_engine;
 	uint32_t m_samplingRate;
 	
-	char* m_buffer;
-	size_t m_bufferSize;
-
 	SLObjectItf m_outputMix;
 	SLObjectItf m_player;
 	SLPlayItf m_playerInterface;

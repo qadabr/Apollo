@@ -3,9 +3,6 @@
 SoundPlayer::SoundPlayer(SoundEngine* engine, uint32_t samplingRate)
 	: m_engine(engine), m_samplingRate(samplingRate)
 {
-	m_buffer = nullptr;
-	m_bufferSize = 0;
-	
 	const SLInterfaceID pOutputMixIDs[] = {};
 	const SLboolean pOutputMixRequired[] = {};
 
@@ -86,11 +83,6 @@ void SoundPlayer::Stop()
 
 void SoundPlayer::ClearQueue()
 {
-	if (m_bufferSize != 0) {
-		delete[] m_buffer;
-		m_bufferSize = 0;
-	}
-	
 	(*m_bufferQueueInterface)->Clear(m_bufferQueueInterface);
 }
 
