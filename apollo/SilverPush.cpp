@@ -93,8 +93,8 @@ void SilverPush::ReceiveMessage()
 	size_t hits[FREQ_SIZE] = { 0 };
 
 	while (true) {
-		int16_t* buffer = (int16_t*)m_recorder->DequeueBuffer();
-		size_t bufferSize = m_recorder->GetBufferSize() / sizeof(int16_t);
+		int16_t* buffer = m_recorder->DequeueBuffer();
+		size_t bufferSize = m_recorder->GetBufferSize();
 
 		if (buffer == nullptr) {
 			continue;

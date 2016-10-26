@@ -20,7 +20,7 @@ class SoundRecorder
 	void Stop();
 	void ClearQueue();
 	void SaveChunk();
-	char* DequeueBuffer();
+	int16_t* DequeueBuffer();
 
 	uint32_t GetSamplingRate();
 	size_t GetBufferSize();
