@@ -32,16 +32,6 @@ void SilverPush::Send()
 	m_player->Play();
 }
 
-void addByteToMessage(std::string& message, char* messageByte)
-{
-	char result = 0;
-	for (size_t i = 0; i < 8; ++i) {
-		result |= messageByte[i] << (7 - i);
-	}
-
-	message += result;
-}
-
 double SilverPush::frequencyFilter(double freq)
 {
 	double error = 300;
@@ -64,20 +54,25 @@ inline size_t bitsInFrame(size_t hits, size_t frameStep)
 	return hits ? 1 + (hits - 1) / frameStep : 0;
 }
 
-static void transformSignal(int16_t* data, double* output, size_t length)
+static std::string bitsToString(std::vector<bool> &bits)
 {
-	double input[length];
+	std::string result = "";
 
-	for (size_t i = 0; i < length; ++i) {
-		input[i] = data[i] / 32767.0;
+	for (size_t i = 0; i < bits.size(); i += 8) {
+		char c = 0;
+		for (size_t j = 0; j < 8; ++j) {
+			c |= bits[i + j] << (7 - j);
+		}
+
+		result += c;
 	}
 	
-	FFTAnalysis(input, output, length, length);
+	return result;
 }
 
 void SilverPush::ReceiveMessage()
 {
-	m_recorder = new SoundRecorder(m_engine, m_samplingRate, 4);
+	m_recorder = new SoundRecorder(m_engine, m_samplingRate, 8);
 	m_recorder->ClearQueue();
 	m_recorder->Record();
 
@@ -85,11 +80,14 @@ void SilverPush::ReceiveMessage()
 	const size_t bufferSize = m_recorder->GetBufferSize();
 	
 	// Шаг смещения в частях окна
-	size_t frameStep = 8;
+	size_t frameStep = 256;
 
 	// Количество подряд фиксаций одной и той же частоты
 	size_t hits[FREQ_SIZE] = { 0 };
 
+	std::vector<bool> bitmessage;
+	
+	printf(" Received: ");
 	while (true) {
 		int16_t* buffer = m_recorder->DequeueBuffer();
 
@@ -105,6 +103,7 @@ void SilverPush::ReceiveMessage()
 			if (std::abs(freq - m_minFreq) < 0.1) {
 				for (size_t i = 0; i < bitsInFrame(hits[MAX_FREQ], frameStep); ++i) {
 					printf("%u", 1);
+					bitmessage.push_back(1);
 				}
 
 				hits[MAX_FREQ] = hits[ZERO] = 0;
@@ -114,6 +113,7 @@ void SilverPush::ReceiveMessage()
 			if (std::abs(freq - m_maxFreq) < 0.1) {
 				for (size_t i = 0; i < bitsInFrame(hits[MIN_FREQ], frameStep); ++i) {
 					printf("%u", 0);
+					bitmessage.push_back(0);
 				}
 				
 				hits[MIN_FREQ] = hits[ZERO] = 0;
@@ -124,10 +124,12 @@ void SilverPush::ReceiveMessage()
 			if (std::abs(freq) < 0.1) {
 				for (size_t i = 0; i < bitsInFrame(hits[MIN_FREQ], frameStep); ++i) {
 					printf("%u", 0);
+					bitmessage.push_back(0);
 				}
 
 				for (size_t i = 0; i < bitsInFrame(hits[MAX_FREQ], frameStep); ++i) {
 					printf("%u", 1);
+					bitmessage.push_back(1);
 				}
 
 				hits[MIN_FREQ] = hits[MAX_FREQ] = 0;
@@ -146,6 +148,9 @@ void SilverPush::ReceiveMessage()
 	}	
 
 	printf("\n");
+
+	printf("Result message: %s\n", bitsToString(bitmessage).c_str());
+	
 	delete m_recorder;
 }
 

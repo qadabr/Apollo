@@ -4,8 +4,8 @@
 #include "SoundEngine.h"
 #include "SoundPlayer.h"
 #include "SoundRecorder.h"
-#include "Fourier.h"
 
+#include <vector>
 #include <string>
 #include <cmath>
 #include <unistd.h>
