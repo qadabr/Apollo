@@ -151,7 +151,7 @@ void SoundRecorder::Record()
 	}
 
 	this->SaveChunk();
-	delete[] this->DequeueBuffer();
+	this->ClearQueue();
 }
 
 void SoundRecorder::Stop()
@@ -179,13 +179,9 @@ void SoundRecorder::ClearQueue()
 		return;
 	}
 
-	LOG_D("The queue size is %u\n", m_queue.size());
 	while (not m_queue.empty()) {
-		int16_t* buffer = m_queue.front();
-		delete[] buffer;
-		m_queue.pop();
+		delete[] this->DequeueBuffer();
 	}
-	LOG_D("The queue is empty now!\n");
 }
 
 uint32_t SoundRecorder::GetSamplingRate()
