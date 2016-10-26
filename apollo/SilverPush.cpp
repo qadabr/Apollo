@@ -113,7 +113,7 @@ void SilverPush::ReceiveMessage()
 
 			if (std::abs(freq - m_maxFreq) < 0.1) {
 				for (size_t i = 0; i < bitsInFrame(hits[MIN_FREQ], frameStep); ++i) {
-					printf("%u", 1);
+					printf("%u", 0);
 				}
 				
 				hits[MIN_FREQ] = hits[ZERO] = 0;
