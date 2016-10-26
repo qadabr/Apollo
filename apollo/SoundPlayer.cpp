@@ -73,6 +73,8 @@ void SoundPlayer::bufferQueueCallback(SLBufferQueueItf bq, void* context)
 
 SoundPlayer::~SoundPlayer()
 {
+	this->Stop();
+	this->ClearQueue();
 	(*m_player)->Destroy(m_player);
 	(*m_outputMix)->Destroy(m_outputMix);
 }
