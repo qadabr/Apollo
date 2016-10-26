@@ -82,10 +82,8 @@ void SilverPush::ReceiveMessage()
 	m_recorder->Record();
 
 	const size_t frameN = m_duration * m_samplingRate / 1000;
-
-       	// Предыдущая частота
-	double lastFreq = 0.0;
-
+	const size_t bufferSize = m_recorder->GetBufferSize();
+	
 	// Шаг смещения в частях окна
 	size_t frameStep = 8;
 
@@ -94,9 +92,9 @@ void SilverPush::ReceiveMessage()
 
 	while (true) {
 		int16_t* buffer = m_recorder->DequeueBuffer();
-		size_t bufferSize = m_recorder->GetBufferSize();
 
 		if (buffer == nullptr) {
+			//usleep(m_recorder->GetSwapTimeMicrosecond());
 			continue;
 		}
 
@@ -105,12 +103,20 @@ void SilverPush::ReceiveMessage()
 			//LOG_D("%f", freq);
 			
 			if (std::abs(freq - m_minFreq) < 0.1) {
-				hits[ZERO] = 0;
+				for (size_t i = 0; i < bitsInFrame(hits[MAX_FREQ], frameStep); ++i) {
+					printf("%u", 1);
+				}
+
+				hits[MAX_FREQ] = hits[ZERO] = 0;
 				++hits[MIN_FREQ];
 			}
 
 			if (std::abs(freq - m_maxFreq) < 0.1) {
-				hits[ZERO] = 0;
+				for (size_t i = 0; i < bitsInFrame(hits[MIN_FREQ], frameStep); ++i) {
+					printf("%u", 1);
+				}
+				
+				hits[MIN_FREQ] = hits[ZERO] = 0;
 				++hits[MAX_FREQ];
 			}
 
@@ -128,7 +134,6 @@ void SilverPush::ReceiveMessage()
 				++hits[ZERO];
 			}
 
-			lastFreq = freq;
 			i += frameN / frameStep;
 		}
 
@@ -188,9 +193,6 @@ int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize
 
 double SilverPush::frameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 {
-	// Размер фрейма в дискретах
-	size_t x1 = x0 + frameN;
-
 	// Количество изменений знака функции на протяжении фрейма
 	size_t n = 0;
 	
