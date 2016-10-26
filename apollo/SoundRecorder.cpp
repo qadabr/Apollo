@@ -143,15 +143,15 @@ useconds_t SoundRecorder::GetSwapTimeMicrosecond()
 
 void SoundRecorder::Record()
 {
+	this->SaveChunk();
+	this->ClearQueue();
+
 	SLresult result = (*m_recorderInterface)->SetRecordState(m_recorderInterface,
 								 SL_RECORDSTATE_RECORDING);
 	if (result != SL_RESULT_SUCCESS) {
 		LOG_E("Failed to set record state to recording!\n");
 		return;
 	}
-
-	this->SaveChunk();
-	this->ClearQueue();
 }
 
 void SoundRecorder::Stop()
@@ -180,7 +180,10 @@ void SoundRecorder::ClearQueue()
 	}
 
 	while (not m_queue.empty()) {
-		delete[] this->DequeueBuffer();
+		int16_t* buffer = this->DequeueBuffer();
+		if (buffer != nullptr) {
+			delete[] buffer;
+		}
 	}
 }
 
