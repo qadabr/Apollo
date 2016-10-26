@@ -123,6 +123,7 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate, uint32_
 SoundRecorder::~SoundRecorder()
 {
 	this->Stop();
+	this->ClearQueue();
 	(*m_recorder)->Destroy(m_recorder);
 }
 
