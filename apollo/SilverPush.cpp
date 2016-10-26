@@ -167,7 +167,7 @@ int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize
 	/* Количество битов в байте */
 	size_t fragmentCount = 8 * message.length();
 
-	*bufferSize = fragmentSize * fragmentCount;
+	*bufferSize = fragmentSize * fragmentCount * 2;
 	
 	/* Синтезируемая волна */
 	int16_t* wave = new int16_t[*bufferSize];
@@ -183,6 +183,7 @@ int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize
 		for (size_t j = 0; j < fragmentSize; ++j) {
 			double angularFrequency = 2 * M_PI * freq / m_player->GetSamplingRate();
 
+			wave[x++] = (int16_t)(32767 * sin(angle));
 			wave[x++] = (int16_t)(32767 * sin(angle));
 			angle += angularFrequency;
 
