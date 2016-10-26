@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "SoundEngine.h"
+#include "Setting.h"
 
 class SoundPlayer
 {
@@ -17,6 +18,8 @@ class SoundPlayer
 	void ClearQueue();
 	void EnqueueBuffer(int16_t* buffer, size_t bufferSize);
 	uint32_t GetSamplingRate();	
+ private:
+	static void bufferQueueCallback(SLBufferQueueItf bq, void* context);
  private:
 	SoundEngine* m_engine;
 	uint32_t m_samplingRate;

@@ -15,8 +15,8 @@ SoundPlayer::SoundPlayer(SoundEngine* engine, uint32_t samplingRate)
 	result = (*m_outputMix)->Realize(m_outputMix, SL_BOOLEAN_FALSE);
 
 	SLDataLocator_AndroidSimpleBufferQueue locatorBufferQueue = {
-		SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
-		2
+		SL_DATALOCATOR_BUFFERQUEUE,
+		SOUND_PLAYER_BUFFERS
 	};
 	
 	SLDataFormat_PCM formatPCM = {
@@ -40,6 +40,7 @@ SoundPlayer::SoundPlayer(SoundEngine* engine, uint32_t samplingRate)
 	};
 	
 	SLDataSink audioSnk = { &locatorOutMix, NULL };
+	
 	const SLInterfaceID pIDs[] = { SL_IID_BUFFERQUEUE };
 	const SLboolean pIDsRequired[] = { SL_BOOLEAN_TRUE };
 
@@ -59,14 +60,21 @@ SoundPlayer::SoundPlayer(SoundEngine* engine, uint32_t samplingRate)
 	result = (*m_player)->GetInterface(m_player,
 					   SL_IID_BUFFERQUEUE,
 					   &m_bufferQueueInterface);
-	
-	this->Stop();
+
+	result = (*m_bufferQueueInterface)->RegisterCallback(m_bufferQueueInterface,
+							     SoundPlayer::bufferQueueCallback,
+							     this);
 }
 
+void SoundPlayer::bufferQueueCallback(SLBufferQueueItf bq, void* context)
+{
+	
+}
 
 SoundPlayer::~SoundPlayer()
 {
-	
+	(*m_player)->Destroy(m_player);
+	(*m_outputMix)->Destroy(m_outputMix);
 }
 
 void SoundPlayer::Play()

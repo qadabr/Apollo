@@ -6,6 +6,7 @@
 #include <queue>
 
 #include "SoundEngine.h"
+#include "Setting.h"
 
 class SoundRecorder
 {
@@ -26,7 +27,7 @@ class SoundRecorder
 
 	useconds_t GetSwapTimeMicrosecond();
  private:
-	static void recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
+	static void bufferQueueCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
  private:
 	SoundEngine* m_engine;
 	uint32_t m_samplingRate;

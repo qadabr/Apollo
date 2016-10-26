@@ -1,6 +1,6 @@
 #include "SoundRecorder.h"
 
-void SoundRecorder::recorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+void SoundRecorder::bufferQueueCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
 {
 	LOG_I("Callback has been called!\n");
 	((SoundRecorder *)context)->SaveChunk();
@@ -53,7 +53,7 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate, uint32_
 
 	SLDataLocator_AndroidSimpleBufferQueue locatorBufferQueue = {
 		SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
-		2
+		SOUND_RECORDER_BUFFERS
 	};
 
 	SLDataFormat_PCM formatPCM = {
@@ -113,7 +113,7 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate, uint32_
 	}
 
 	result = (*m_recorderQueueInterface)->RegisterCallback
-		(m_recorderQueueInterface, SoundRecorder::recorderCallback, this);
+		(m_recorderQueueInterface, SoundRecorder::bufferQueueCallback, this);
 
 	if (result != SL_RESULT_SUCCESS) {
 		LOG_E("Failed to register the recorder callback!\n");
