@@ -11,7 +11,6 @@ void SoundRecorder::SaveChunk()
 	size_t bufferSize = m_samplingRate * m_chunkSize * sizeof(int16_t);
 	int16_t* buffer = new int16_t[bufferSize];
 
-	(*m_recorderQueueInterface)->Clear(m_recorderQueueInterface);
 	(*m_recorderQueueInterface)->Enqueue(m_recorderQueueInterface,
 					     buffer, bufferSize);
 
