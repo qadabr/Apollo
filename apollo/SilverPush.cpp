@@ -80,7 +80,7 @@ void SilverPush::ReceiveMessage()
 	const size_t bufferSize = m_recorder->GetBufferSize();
 	
 	// Шаг смещения в частях окна
-	size_t frameStep = 256;
+	size_t frameStep = 16;
 
 	// Количество подряд фиксаций одной и той же частоты
 	size_t hits[FREQ_SIZE] = { 0 };
@@ -148,7 +148,6 @@ void SilverPush::ReceiveMessage()
 	}	
 
 	printf("\n");
-
 	printf("Result message: %s\n", bitsToString(bitmessage).c_str());
 	
 	delete m_recorder;
@@ -197,14 +196,30 @@ int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize
 	return wave;
 }
 
+static void highpass(const int16_t* input, int16_t* output, size_t bufferSize,
+		     uint32_t samplingRate, double cutoff)
+{
+	const double RC = 1.0 / (cutoff * 2 * M_PI);
+	const double dt = 1.0 / samplingRate;
+	const double alpha = RC / (RC + dt);
+
+	output[0] = input[0];
+	for (size_t i = 1; i < bufferSize; ++i) {
+		output[i] = (int16_t)(alpha * (output[i - 1] + input[i] - input[i - 1]));
+	}
+}
+
 double SilverPush::frameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 {
+	int16_t output[frameN];
+	highpass(&buffer[x0], output, frameN, m_samplingRate, 48000);
+	
 	// Количество изменений знака функции на протяжении фрейма
 	size_t n = 0;
 	
-	for (size_t i = x0; i < x0 + frameN; ++i) {
+	for (size_t i = 0; i < frameN; ++i) {
 		// Получим на выходе число со знаком, если изначально знаки у них были разные
-		if (buffer[i] * buffer[i + 1] < 0) {
+		if (output[i] * output[i + 1] < 0) {
 			++n;
 		}
 	}
