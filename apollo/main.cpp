@@ -7,8 +7,8 @@ int main(int argc, char** argv)
 {
 	SoundEngine* engine = new SoundEngine();
 
-	SilverPush silver(engine, 48000, 19500, 20500, 150);
-	silver.PushMessage("Hello world!");
+	SilverPush silver(engine, 48000, 19500, 20500, 50);
+	silver.PushMessage("We're gonna win!");
 	//silver.PushMessage("hello!");
 	//silver.PushMessage("hello!");
 	//silver.PushMessage("hello!");

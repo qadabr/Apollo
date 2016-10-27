@@ -4,6 +4,7 @@
 #include "SoundEngine.h"
 #include "SoundPlayer.h"
 #include "SoundRecorder.h"
+#include "Butterworth.h"
 
 #include <vector>
 #include <string>
@@ -36,6 +37,8 @@ class SilverPush
 	SoundEngine* m_engine;
 	SoundPlayer* m_player;
 	SoundRecorder* m_recorder;
+
+	Butterworth* m_highpassFilter;
 };
 
 #endif /* SILVERPUSH_H */
