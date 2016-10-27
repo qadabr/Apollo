@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.1)
 set(LIBRARY_DEPS log OpenSLES)
 
 include_directories(include)
-file(GLOB SOURCES source/*.cpp)
+file(GLOB SOURCES source/*.c*)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${LIBRARY_DEPS})
 

@@ -12,7 +12,11 @@ SilverPush::SilverPush(SoundEngine* engine,
 	  m_engine(engine)
 {
 	m_player = new SoundPlayer(m_engine, m_samplingRate);
-	m_highpassFilter = new Butterworth(m_minFreq - 1000, m_samplingRate, std::sqrt(2));
+
+	double cutoffFreq = m_minFreq - 500;
+	m_highpassFilter = new Butterworth(cutoffFreq,
+					   m_samplingRate,
+					   cutoffFreq / m_samplingRate);
 }
 
 SilverPush::~SilverPush()
@@ -36,7 +40,7 @@ void SilverPush::Send()
 
 double SilverPush::frequencyFilter(double freq)
 {
-	double error = 300;
+	double error = 50;
 	
 	if (std::abs(freq - m_minFreq) <= error) {
 		return m_minFreq;
@@ -82,7 +86,7 @@ void SilverPush::ReceiveMessage()
 	const size_t bufferSize = m_recorder->GetBufferSize();
 	
 	// Шаг смещения в частях окна
-	size_t frameStep = 32;
+	size_t frameStep = 128;
 
 	// Количество подряд фиксаций одной и той же частоты
 	size_t hits[FREQ_SIZE] = { 0 };
@@ -92,11 +96,22 @@ void SilverPush::ReceiveMessage()
 	printf(" Received: ");
 	while (true) {
 		int16_t* buffer = m_recorder->DequeueBuffer();
-
+		
 		if (buffer == nullptr) {
 			//usleep(m_recorder->GetSwapTimeMicrosecond());
 			continue;
 		}
+		
+		int16_t output[bufferSize];
+		for (size_t i = 0; i < bufferSize; ++i) {
+			output[i] = (int16_t)m_highpassFilter->Update(buffer[i]);
+		}
+
+		m_recorder->SaveWav("wav/original.wav", buffer, bufferSize);
+		m_recorder->SaveWav("wav/filtered.wav", output, bufferSize);
+		delete[] buffer;
+
+		buffer = output;
 
 		for (size_t i = 0; i < bufferSize - frameN; ) {
 			double freq = frameFrequency(buffer, i, frameN);
@@ -141,8 +156,6 @@ void SilverPush::ReceiveMessage()
 
 			i += frameN / frameStep;
 		}
-
-		delete[] buffer;
 		
 		// Ряд в пять нулей подряд говорит о том, что, скорее всего, принимать нечего
 		if (hits[ZERO] >= 5) {
@@ -201,15 +214,12 @@ int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize
 
 double SilverPush::frameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 {
-	double output[frameN];
 	// Количество изменений знака функции на протяжении фрейма
 	size_t n = 0;
 
-	output[0] = buffer[x0];
-	for (size_t i = 1; i < frameN; ++i) {
-		output[i] = m_highpassFilter->Update(buffer[i + x0]);
+	for (size_t i = x0; i < x0 + frameN; ++i) {
 		// Получим на выходе число со знаком, если изначально знаки у них были разные
-		if (output[i - 1] * output[i] < 0) {
+		if (buffer[i] * buffer[i + 1] < 0) {
 			++n;
 		}
 	}

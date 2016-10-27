@@ -192,3 +192,11 @@ uint32_t SoundRecorder::GetSamplingRate()
 {
 	return m_samplingRate;
 }
+
+void SoundRecorder::SaveWav(const std::string& filePath, int16_t* buffer, size_t bufferSize)
+{
+	write_wav((char*)filePath.c_str(),
+		  (unsigned long)bufferSize,
+		  (short int *)buffer,
+		  (int)m_samplingRate);
+}
