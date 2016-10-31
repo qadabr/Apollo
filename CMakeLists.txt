@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.1)
 
 add_subdirectory(aquila-src)
 
-set(LIBRARY_DEPS log OpenSLES)
+set(LIBRARY_DEPS log OpenSLES Aquila)
 
 include_directories(include)
 file(GLOB SOURCES source/*.c*)
