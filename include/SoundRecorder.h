@@ -7,7 +7,7 @@
 
 #include "SoundEngine.h"
 #include "Setting.h"
-#include "make_wav.h"
+#include "MakeWav.h"
 
 class SoundRecorder
 {

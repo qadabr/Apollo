@@ -1,3 +1,6 @@
 [submodule "android-cmake"]
 	path = android-cmake
 	url = https://github.com/taka-no-me/android-cmake.git
+[submodule "aquila-src"]
+	path = aquila-src
+	url = git://github.com/zsiciarz/aquila.git

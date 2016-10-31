@@ -12,6 +12,8 @@ set(ANDROID_ABI "armeabi-v7a")
 project(${PROJECT_NAME})
 cmake_minimum_required(VERSION 3.1)
 
+add_subdirectory(aquila-src)
+
 set(LIBRARY_DEPS log OpenSLES)
 
 include_directories(include)
@@ -19,7 +21,7 @@ file(GLOB SOURCES source/*.c*)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${LIBRARY_DEPS})
 
-file(GLOB MODULES modules/*/*.cpp)
+#file(GLOB MODULES modules/*/*.cpp)
 foreach (module_src ${MODULES})
   get_filename_component(module ${module_src} NAME_WE)
   string(TOLOWER ${module} module)
