@@ -67,12 +67,10 @@ void SilverPush::SignalFiltration(int16_t* buffer, size_t bufferSize, double fil
 		double freq2 = tempSize * (m_samplingRate - filterFreq) / m_samplingRate; 
 		
 		if (i < freq1 || i > freq2) {
-			// passband
 			filterSpectrum[i] = 0.0;
 		}
 		else {
-			// stopband
-			filterSpectrum[i] = 1.0;
+			filterSpectrum[i] = 2.0;
 		}
 	}
 
@@ -104,6 +102,11 @@ void SilverPush::ParseBuffer(std::list<double>& frequencySequence,
 			     size_t frameStep)
 {
 	for (size_t bufferIndex = 0; bufferIndex < bufferSize - frameSize; ) {
+		//double minA, maxA;
+		//GetFrequency(buffer, bufferIndex, frameSize, minA, maxA);
+
+		//LOG_I("%f - %f", minA, maxA);
+		
 		double frequency = FrameFrequency(buffer, bufferIndex, frameSize); 
 		frequencySequence.push_back(frequency);
 
@@ -111,15 +114,29 @@ void SilverPush::ParseBuffer(std::list<double>& frequencySequence,
 	}
 }
 
+void SilverPush::GetFrequency(int16_t buffer[], size_t startIndex, size_t frameSize, double& min, double& max)
+{
+	const static size_t tempSize = std::pow(2, 12);
+	
+	static std::vector<double> temp(tempSize);
+	std::copy(&buffer[startIndex], &buffer[startIndex] + frameSize, temp.begin());
+	
+	auto fft = Aquila::FftFactory::getFft(tempSize);
+	auto spectrum = fft->fft(temp.data());
+
+	min = spectrum[frameSize * m_minFreq / m_samplingRate].real(); 
+	max = spectrum[frameSize * m_maxFreq / m_samplingRate].real(); 
+}
+
 void SilverPush::FilterFrequencySequence(std::list<double>& frequencySequence)
 {
 	for (double& frequency : frequencySequence) {
-		if (std::abs(frequency - m_minFreq) < 50) {
+		if (std::abs(frequency - m_minFreq) < 300) {
 			frequency = m_minFreq;
 			continue;
 		}
 
-		if (std::abs(frequency - m_maxFreq) < 50) {
+		if (std::abs(frequency - m_maxFreq) < 300) {
 			frequency = m_maxFreq;
 			continue;
 		}
@@ -185,7 +202,7 @@ void SilverPush::ReceiveMessage()
 		//m_recorder->SaveWav("/sdcard/original.wav", buffer, bufferSize);
 		
 		std::list<double> frequencySequence;
-		SignalFiltration(buffer, bufferSize, m_minFreq - 500);
+		SignalFiltration(buffer, bufferSize, 2 * m_minFreq - m_maxFreq);
 
 		//m_recorder->SaveWav("/sdcard/filtered.wav", buffer, bufferSize);
 		
@@ -196,7 +213,6 @@ void SilverPush::ReceiveMessage()
 		printf(" Received: %s\n", bitList.c_str());
 
 		delete[] buffer;
-		break;
 	}
 
 	m_recorder->Stop();
