@@ -52,8 +52,8 @@ static std::string BitsToString(std::vector<bool> &bits)
 
 void SilverPush::SignalFiltration(int16_t* buffer, size_t bufferSize, double filterFreq)
 {
-	// 18 потому что буфер размером 5 * samplingRate
-	size_t tempSize = std::pow(2, 18);
+	// 2^18 потому что буфер размером 5 * 48000
+	const size_t tempSize = std::pow(2, 18);
 	
 	std::vector<double> temp(tempSize);
 	std::copy(buffer, buffer + bufferSize, temp.begin());
@@ -63,13 +63,16 @@ void SilverPush::SignalFiltration(int16_t* buffer, size_t bufferSize, double fil
 
 	Aquila::SpectrumType filterSpectrum(tempSize);
 	for (std::size_t i = 0; i < tempSize; ++i) {
-		if (i > (tempSize * filterFreq / m_samplingRate)) {
+		double freq1 = tempSize * filterFreq / m_samplingRate;
+		double freq2 = tempSize * (m_samplingRate - filterFreq) / m_samplingRate; 
+		
+		if (i < freq1 || i > freq2) {
 			// passband
-			filterSpectrum[i] = 1.0;
+			filterSpectrum[i] = 0.0;
 		}
 		else {
 			// stopband
-			filterSpectrum[i] = 0.0;
+			filterSpectrum[i] = 1.0;
 		}
 	}
 
@@ -179,12 +182,12 @@ void SilverPush::ReceiveMessage()
 			continue;
 		}
 
-		m_recorder->SaveWav("/sdcard/original.wav", buffer, bufferSize);
+		//m_recorder->SaveWav("/sdcard/original.wav", buffer, bufferSize);
 		
 		std::list<double> frequencySequence;
 		SignalFiltration(buffer, bufferSize, m_minFreq - 500);
 
-		m_recorder->SaveWav("/sdcard/filtered.wav", buffer, bufferSize);
+		//m_recorder->SaveWav("/sdcard/filtered.wav", buffer, bufferSize);
 		
 		ParseBuffer(frequencySequence, buffer, bufferSize, frameSize, frameStep);
 		FilterFrequencySequence(frequencySequence);
