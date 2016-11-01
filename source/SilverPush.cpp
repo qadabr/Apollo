@@ -112,12 +112,12 @@ void SilverPush::ParseBuffer(std::list<double>& frequencySequence,
 void SilverPush::FilterFrequencySequence(std::list<double>& frequencySequence)
 {
 	for (double& frequency : frequencySequence) {
-		if (std::abs(frequency - m_minFreq) < 300) {
+		if (std::abs(frequency - m_minFreq) < 50) {
 			frequency = m_minFreq;
 			continue;
 		}
 
-		if (std::abs(frequency - m_maxFreq) < 300) {
+		if (std::abs(frequency - m_maxFreq) < 50) {
 			frequency = m_maxFreq;
 			continue;
 		}
@@ -168,10 +168,10 @@ std::string SilverPush::GetBitList(std::list<double>& frequencySequence, size_t 
 
 void SilverPush::ReceiveMessage()
 {
-	SoundRecorder recorder(m_engine, m_samplingRate, 2);
+	SoundRecorder recorder(m_engine, m_samplingRate, 6);
 	recorder.Record();
 	
-	const size_t frameStep = 4;
+	const size_t frameStep = 256;
 	const size_t frameSize = m_duration * m_samplingRate / 1000;
 	const size_t bufferSize = recorder.GetBufferSize();
 
