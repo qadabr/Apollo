@@ -33,10 +33,10 @@ int16_t* SoundRecorder::DequeueBuffer()
 	return buffer;
 }
 
-SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate, uint32_t chunkSize)
+SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 	: m_engine(engine),
 	  m_samplingRate(samplingRate),
-	  m_chunkSize(chunkSize)
+	  m_chunkSize(5)
 {
 	SLDataLocator_IODevice locatorDevice = {
 		SL_DATALOCATOR_IODEVICE,

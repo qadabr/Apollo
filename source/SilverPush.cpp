@@ -12,7 +12,7 @@ SilverPush::SilverPush(SoundEngine* engine,
 	  m_engine(engine)
 {
 	m_player = new SoundPlayer(m_engine, m_samplingRate);
-	m_recorder = new SoundRecorder(m_engine, m_samplingRate, 4);
+	m_recorder = new SoundRecorder(m_engine, m_samplingRate);
 }
 
 SilverPush::~SilverPush()
@@ -52,15 +52,37 @@ static std::string BitsToString(std::vector<bool> &bits)
 
 void SilverPush::SignalFiltration(int16_t* buffer, size_t bufferSize, double filterFreq)
 {
-	std::vector<double> temp(bufferSize);
+	// 18 потому что буфер размером 5 * samplingRate
+	size_t tempSize = std::pow(2, 18);
 	
-	auto fft = Aquila::FftFactory::getFft(bufferSize);
+	std::vector<double> temp(tempSize);
+	std::copy(buffer, buffer + bufferSize, temp.begin());
+	
+	auto fft = Aquila::FftFactory::getFft(tempSize);
 	auto spectrum = fft->fft(temp.data());
+
+	Aquila::SpectrumType filterSpectrum(tempSize);
+	for (std::size_t i = 0; i < tempSize; ++i) {
+		if (i > (tempSize * filterFreq / m_samplingRate)) {
+			// passband
+			filterSpectrum[i] = 1.0;
+		}
+		else {
+			// stopband
+			filterSpectrum[i] = 0.0;
+		}
+	}
+
+	std::transform(std::begin(spectrum),
+		       std::end(spectrum),
+		       std::begin(filterSpectrum),
+		       std::begin(spectrum),
+		       [] (Aquila::ComplexType x, Aquila::ComplexType y) { return x * y; }
+	);
+	
 	fft->ifft(spectrum, temp.data());
 
-	for (size_t i = 0; i < bufferSize; ++i) {
-		buffer[i] = (int16_t)temp[i];
-	}
+	std::copy(temp.begin(), temp.begin() + bufferSize, buffer);
 }
 
 static bool CompareDouble(double a, double b)
@@ -157,7 +179,13 @@ void SilverPush::ReceiveMessage()
 			continue;
 		}
 
+		m_recorder->SaveWav("/sdcard/original.wav", buffer, bufferSize);
+		
 		std::list<double> frequencySequence;
+		SignalFiltration(buffer, bufferSize, m_minFreq - 500);
+
+		m_recorder->SaveWav("/sdcard/filtered.wav", buffer, bufferSize);
+		
 		ParseBuffer(frequencySequence, buffer, bufferSize, frameSize, frameStep);
 		FilterFrequencySequence(frequencySequence);
 		std::string bitList = GetBitList(frequencySequence, frameStep);
@@ -165,6 +193,7 @@ void SilverPush::ReceiveMessage()
 		printf(" Received: %s\n", bitList.c_str());
 
 		delete[] buffer;
+		break;
 	}
 
 	m_recorder->Stop();

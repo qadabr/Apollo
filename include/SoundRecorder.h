@@ -12,7 +12,7 @@
 class SoundRecorder
 {
  public:
-	SoundRecorder(SoundEngine* engine, uint32_t samplingRate, uint32_t chunkSize);
+	SoundRecorder(SoundEngine* engine, uint32_t samplingRate);
 	~SoundRecorder();
 
 	SLRecordItf GetInterface();
