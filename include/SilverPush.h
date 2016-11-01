@@ -43,7 +43,7 @@ class SilverPush
 	void FilterFrequencySequence(std::list<double>& frequencySequence);
 	
 	int16_t* GenerateWave(const std::string& message, size_t* bufferSize);
-	void SignalFiltration(double* result, int16_t* buffer, size_t bufferSize, double filterFreq);
+	void SignalFiltration(int16_t* buffer, size_t bufferSize, double filterFreq);
 	double FrameFrequency(int16_t* buffer, size_t x0, size_t frameN);
  private:
 	uint32_t m_samplingRate;
@@ -53,8 +53,7 @@ class SilverPush
 	
 	SoundEngine* m_engine;
 	SoundPlayer* m_player;
-
-	Butterworth* m_highpassFilter;
+	SoundRecorder* m_recorder;
 };
 
 #endif /* SILVERPUSH_H */

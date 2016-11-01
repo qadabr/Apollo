@@ -12,17 +12,13 @@ SilverPush::SilverPush(SoundEngine* engine,
 	  m_engine(engine)
 {
 	m_player = new SoundPlayer(m_engine, m_samplingRate);
-
-	double cutoffFreq = m_minFreq - 500;
-	m_highpassFilter = new Butterworth(cutoffFreq,
-					   m_samplingRate,
-					   1.4);
+	m_recorder = new SoundRecorder(m_engine, m_samplingRate, 4);
 }
 
 SilverPush::~SilverPush()
 {
 	delete m_player;
-	delete m_highpassFilter;
+	delete m_recorder;
 }
 
 void SilverPush::PushMessage(const std::string& message)
@@ -54,36 +50,17 @@ static std::string BitsToString(std::vector<bool> &bits)
 	return result;
 }
 
-void SilverPush::SignalFiltration(double* result, int16_t* buffer, size_t bufferSize, double filterFreq)
+void SilverPush::SignalFiltration(int16_t* buffer, size_t bufferSize, double filterFreq)
 {
-	auto fft = Aquila::FftFactory::getFft(bufferSize);
-	Aquila::SpectrumType filterSpectrum(bufferSize);
-
 	std::vector<double> temp(bufferSize);
-	for (size_t i = 0; i < bufferSize; ++i) {
-		temp[i] = buffer[i];
-		
-		if (i < (bufferSize * filterFreq / m_samplingRate)) {
-			filterSpectrum[i] = 1.0;
-		}
-		else {
-			filterSpectrum[i] = 1.0;
-		}
-	}
 	
-	auto signal = Aquila::SignalSource(temp.data(), temp.size(), m_samplingRate);
-	auto spectrum = fft->fft(signal.toArray());
+	auto fft = Aquila::FftFactory::getFft(bufferSize);
+	auto spectrum = fft->fft(temp.data());
+	fft->ifft(spectrum, temp.data());
 
-	/*
-	std::transform(std::begin(spectrum),
-		       std::end(spectrum),
-		       std::begin(filterSpectrum),
-		       std::begin(spectrum),
-		       [] (Aquila::ComplexType x, Aquila::ComplexType y) { return x * y; }
-	);
-	*/
-
-	fft->ifft(spectrum, result);
+	for (size_t i = 0; i < bufferSize; ++i) {
+		buffer[i] = (int16_t)temp[i];
+	}
 }
 
 static bool CompareDouble(double a, double b)
@@ -168,28 +145,29 @@ std::string SilverPush::GetBitList(std::list<double>& frequencySequence, size_t 
 
 void SilverPush::ReceiveMessage()
 {
-	SoundRecorder recorder(m_engine, m_samplingRate, 6);
-	recorder.Record();
+	m_recorder->Record();
 	
-	const size_t frameStep = 256;
+	const size_t frameStep = 250;
 	const size_t frameSize = m_duration * m_samplingRate / 1000;
-	const size_t bufferSize = recorder.GetBufferSize();
+	const size_t bufferSize = m_recorder->GetBufferSize();
 
 	while (true) {
-		int16_t* buffer = recorder.DequeueBuffer();
+		int16_t* buffer = m_recorder->DequeueBuffer();
 		if (buffer == nullptr) {
 			continue;
 		}
-		
+
 		std::list<double> frequencySequence;
 		ParseBuffer(frequencySequence, buffer, bufferSize, frameSize, frameStep);
 		FilterFrequencySequence(frequencySequence);
 		std::string bitList = GetBitList(frequencySequence, frameStep);
 
 		printf(" Received: %s\n", bitList.c_str());
+
+		delete[] buffer;
 	}
-	
-	recorder.Stop();
+
+	m_recorder->Stop();
 }
 
 inline int GetBit(const std::string& message, size_t index)

@@ -193,15 +193,10 @@ uint32_t SoundRecorder::GetSamplingRate()
 	return m_samplingRate;
 }
 
-void SoundRecorder::SaveWav(const std::string& filePath, double* buffer, size_t bufferSize)
+void SoundRecorder::SaveWav(const std::string& filePath, int16_t* buffer, size_t bufferSize)
 {
-	std::vector<int16_t> result(bufferSize);
-	for (size_t i = 0; i < result.size(); ++i) {
-		result[i] = buffer[i];
-	}
-	
 	WriteWav((char*)filePath.c_str(),
 		 (unsigned long)bufferSize,
-		 (short int *)result.data(),
+		 (short int *)buffer,
 		 (int)m_samplingRate);
 }
