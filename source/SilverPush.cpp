@@ -16,7 +16,7 @@ SilverPush::SilverPush(SoundEngine* engine,
 	double cutoffFreq = m_minFreq - 500;
 	m_highpassFilter = new Butterworth(cutoffFreq,
 					   m_samplingRate,
-					   cutoffFreq / m_samplingRate);
+					   1.4);
 }
 
 SilverPush::~SilverPush()
@@ -28,7 +28,7 @@ SilverPush::~SilverPush()
 void SilverPush::PushMessage(const std::string& message)
 {
 	size_t bufferSize;
-	int16_t* buffer = this->generateWave(message, &bufferSize);
+	int16_t* buffer = GenerateWave(message, &bufferSize);
 
 	m_player->EnqueueBuffer(buffer, bufferSize);
 }
@@ -38,29 +38,7 @@ void SilverPush::Send()
 	m_player->Play();
 }
 
-double SilverPush::frequencyFilter(double freq)
-{
-	double error = 50;
-	
-	if (std::abs(freq - m_minFreq) <= error) {
-		return m_minFreq;
-	}
-
-	if (std::abs(freq - m_maxFreq) <= error) {
-		return m_maxFreq;
-	}
-
-	return 0.0;
-}
-
-enum FREQ { ZERO, MIN_FREQ, MAX_FREQ, FREQ_SIZE};
-
-inline size_t bitsInFrame(size_t hits, size_t frameStep)
-{
-	return hits ? 1 + (hits - 1) / frameStep : 0;
-}
-
-static std::string bitsToString(std::vector<bool> &bits)
+static std::string BitsToString(std::vector<bool> &bits)
 {
 	std::string result = "";
 
@@ -72,109 +50,154 @@ static std::string bitsToString(std::vector<bool> &bits)
 
 		result += c;
 	}
+
+	return result;
+}
+
+void SilverPush::SignalFiltration(double* result, int16_t* buffer, size_t bufferSize, double filterFreq)
+{
+	auto fft = Aquila::FftFactory::getFft(bufferSize);
+	Aquila::SpectrumType filterSpectrum(bufferSize);
+
+	std::vector<double> temp(bufferSize);
+	for (size_t i = 0; i < bufferSize; ++i) {
+		temp[i] = buffer[i];
+		
+		if (i < (bufferSize * filterFreq / m_samplingRate)) {
+			filterSpectrum[i] = 1.0;
+		}
+		else {
+			filterSpectrum[i] = 1.0;
+		}
+	}
 	
+	auto signal = Aquila::SignalSource(temp.data(), temp.size(), m_samplingRate);
+	auto spectrum = fft->fft(signal.toArray());
+
+	/*
+	std::transform(std::begin(spectrum),
+		       std::end(spectrum),
+		       std::begin(filterSpectrum),
+		       std::begin(spectrum),
+		       [] (Aquila::ComplexType x, Aquila::ComplexType y) { return x * y; }
+	);
+	*/
+
+	fft->ifft(spectrum, result);
+}
+
+static bool CompareDouble(double a, double b)
+{
+	if (std::abs(a - b) < 0.1) {
+		return true;
+	}
+
+	return false;
+}
+
+void SilverPush::ParseBuffer(std::list<double>& frequencySequence,
+			     int16_t* buffer,
+			     size_t bufferSize,
+			     size_t frameSize,
+			     size_t frameStep)
+{
+	for (size_t bufferIndex = 0; bufferIndex < bufferSize - frameSize; ) {
+		double frequency = FrameFrequency(buffer, bufferIndex, frameSize); 
+		frequencySequence.push_back(frequency);
+
+		bufferIndex += frameSize / frameStep;
+	}
+}
+
+void SilverPush::FilterFrequencySequence(std::list<double>& frequencySequence)
+{
+	for (double& frequency : frequencySequence) {
+		if (std::abs(frequency - m_minFreq) < 300) {
+			frequency = m_minFreq;
+			continue;
+		}
+
+		if (std::abs(frequency - m_maxFreq) < 300) {
+			frequency = m_maxFreq;
+			continue;
+		}
+
+		frequency = 0;
+	}
+}
+
+std::string SilverPush::GetBitList(std::list<double>& frequencySequence, size_t frameStep)
+{
+	std::string result = "";
+	
+	size_t bitCount = 0;
+	double prvFrequency = 0;
+
+	auto frequencyIterator = frequencySequence.begin();
+	while (frequencyIterator++ != frequencySequence.end()) {
+		double curFrequency = *frequencyIterator;
+		
+		if (CompareDouble(curFrequency, prvFrequency)) {
+			++bitCount;
+			prvFrequency = curFrequency;
+			continue;
+		}
+
+		size_t rawSize = bitCount ? 1 + (bitCount - 1) / frameStep : 0;
+		if (rawSize > 0) {
+			bitCount = 0;
+		}
+
+		while (rawSize--) {
+			if (CompareDouble(prvFrequency, m_minFreq)) {
+				result += '0';
+				continue;
+			}
+			
+			if (CompareDouble(prvFrequency, m_maxFreq)) {
+				result += '1';
+				continue;
+			}
+		}
+
+		prvFrequency = curFrequency;
+	}
+
 	return result;
 }
 
 void SilverPush::ReceiveMessage()
 {
-	m_recorder = new SoundRecorder(m_engine, m_samplingRate, 6);
-	m_recorder->ClearQueue();
-	m_recorder->Record();
-
-	const size_t frameN = m_duration * m_samplingRate / 1000;
-	const size_t bufferSize = m_recorder->GetBufferSize();
+	SoundRecorder recorder(m_engine, m_samplingRate, 2);
+	recorder.Record();
 	
-	// Шаг смещения в частях окна
-	size_t frameStep = 128;
+	const size_t frameStep = 4;
+	const size_t frameSize = m_duration * m_samplingRate / 1000;
+	const size_t bufferSize = recorder.GetBufferSize();
 
-	// Количество подряд фиксаций одной и той же частоты
-	size_t hits[FREQ_SIZE] = { 0 };
-
-	std::vector<bool> bitmessage;
-	
-	printf(" Received: ");
 	while (true) {
-		int16_t* buffer = m_recorder->DequeueBuffer();
-		
+		int16_t* buffer = recorder.DequeueBuffer();
 		if (buffer == nullptr) {
-			//usleep(m_recorder->GetSwapTimeMicrosecond());
 			continue;
 		}
 		
-		int16_t output[bufferSize];
-		for (size_t i = 0; i < bufferSize; ++i) {
-			output[i] = (int16_t)m_highpassFilter->Update(buffer[i]);
-		}
+		std::list<double> frequencySequence;
+		ParseBuffer(frequencySequence, buffer, bufferSize, frameSize, frameStep);
+		FilterFrequencySequence(frequencySequence);
+		std::string bitList = GetBitList(frequencySequence, frameStep);
 
-		m_recorder->SaveWav("wav/original.wav", buffer, bufferSize);
-		m_recorder->SaveWav("wav/filtered.wav", output, bufferSize);
-		delete[] buffer;
-
-		buffer = output;
-
-		for (size_t i = 0; i < bufferSize - frameN; ) {
-			double freq = frameFrequency(buffer, i, frameN);
-			freq = frequencyFilter(freq);
-			//LOG_D("%f", freq);
-			
-			if (std::abs(freq - m_minFreq) < 0.1) {
-				for (size_t i = 0; i < bitsInFrame(hits[MAX_FREQ], frameStep); ++i) {
-					printf("%u", 1);
-					bitmessage.push_back(1);
-				}
-
-				hits[MAX_FREQ] = hits[ZERO] = 0;
-				++hits[MIN_FREQ];
-			}
-
-			if (std::abs(freq - m_maxFreq) < 0.1) {
-				for (size_t i = 0; i < bitsInFrame(hits[MIN_FREQ], frameStep); ++i) {
-					printf("%u", 0);
-					bitmessage.push_back(0);
-				}
-				
-				hits[MIN_FREQ] = hits[ZERO] = 0;
-				++hits[MAX_FREQ];
-			}
-
-			// Если наткнулись на 0
-			if (std::abs(freq) < 0.1) {
-				for (size_t i = 0; i < bitsInFrame(hits[MIN_FREQ], frameStep); ++i) {
-					printf("%u", 0);
-					bitmessage.push_back(0);
-				}
-
-				for (size_t i = 0; i < bitsInFrame(hits[MAX_FREQ], frameStep); ++i) {
-					printf("%u", 1);
-					bitmessage.push_back(1);
-				}
-
-				hits[MIN_FREQ] = hits[MAX_FREQ] = 0;
-				++hits[ZERO];
-			}
-
-			i += frameN / frameStep;
-		}
-		
-		// Ряд в пять нулей подряд говорит о том, что, скорее всего, принимать нечего
-		if (hits[ZERO] >= 5) {
-			break;
-		}
-	}	
-
-	printf("\n");
-	printf("Result message: %s\n", bitsToString(bitmessage).c_str());
+		printf(" Received: %s\n", bitList.c_str());
+	}
 	
-	delete m_recorder;
+	recorder.Stop();
 }
 
-inline int getBit(const std::string& message, size_t index)
+inline int GetBit(const std::string& message, size_t index)
 {
 	return message[index / 8] & (1 << (7 - index) % 8) ? 1 : 0;
 }
 
-int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize)
+int16_t* SilverPush::GenerateWave(const std::string& message, size_t* bufferSize)
 {
 	/* Размер фрагмента волны, который должен звучать на одной высоте */
 	size_t fragmentSize = (size_t)(m_duration * m_player->GetSamplingRate() / 1000.0);
@@ -183,7 +206,7 @@ int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize
 	size_t fragmentCount = 8 * message.length();
 
 	*bufferSize = fragmentSize * fragmentCount * 2;
-	
+
 	/* Синтезируемая волна */
 	int16_t* wave = new int16_t[*bufferSize];
 
@@ -192,8 +215,8 @@ int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize
 
 	printf("Generated: ");
 	for (size_t i = 0; i < fragmentCount; ++i) {
-		double freq = getBit(message, i) * (m_maxFreq - m_minFreq) + m_minFreq;
-		printf("%u", getBit(message, i));
+		double freq = GetBit(message, i) * (m_maxFreq - m_minFreq) + m_minFreq;
+		printf("%u", GetBit(message, i));
 
 		for (size_t j = 0; j < fragmentSize; ++j) {
 			double angularFrequency = 2 * M_PI * freq / m_player->GetSamplingRate();
@@ -212,14 +235,14 @@ int16_t* SilverPush::generateWave(const std::string& message, size_t* bufferSize
 	return wave;
 }
 
-double SilverPush::frameFrequency(int16_t* buffer, size_t x0, size_t frameN)
+double SilverPush::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 {
 	// Количество изменений знака функции на протяжении фрейма
 	size_t n = 0;
 
 	for (size_t i = x0; i < x0 + frameN; ++i) {
 		// Получим на выходе число со знаком, если изначально знаки у них были разные
-		if (buffer[i] * buffer[i + 1] < 0) {
+		if (buffer[i] * buffer[i + 1] < 0.0) {
 			++n;
 		}
 	}

@@ -13,6 +13,7 @@ project(${PROJECT_NAME})
 cmake_minimum_required(VERSION 3.1)
 
 add_subdirectory(aquila-src)
+include_directories(aquila-src)
 
 set(LIBRARY_DEPS log OpenSLES Aquila)
 

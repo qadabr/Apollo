@@ -6,9 +6,18 @@
 #include "SoundRecorder.h"
 #include "Butterworth.h"
 
+#include <aquila/global.h>
+#include <aquila/transform/FftFactory.h>
+#include <aquila/tools/TextPlot.h>
+#include <aquila/source/generator/SineGenerator.h>
+#include <algorithm>
+#include <functional>
+#include <memory>
+
 #include <vector>
 #include <string>
 #include <cmath>
+#include <list>
 #include <unistd.h>
 
 class SilverPush
@@ -25,9 +34,17 @@ class SilverPush
 	void Send();
 	void ReceiveMessage();
  private:
-	int16_t* generateWave(const std::string& message, size_t* bufferSize);
-	double frequencyFilter(double freq);
-	double frameFrequency(int16_t* buffer, size_t x0, size_t frameN);
+	std::string GetBitList(std::list<double>& frequencySequence, size_t frameStep);
+	void ParseBuffer(std::list<double>& frequencySequence,
+			 int16_t* buffer,
+			 size_t bufferSize,
+			 size_t frameSize,
+			 size_t frameStep);
+	void FilterFrequencySequence(std::list<double>& frequencySequence);
+	
+	int16_t* GenerateWave(const std::string& message, size_t* bufferSize);
+	void SignalFiltration(double* result, int16_t* buffer, size_t bufferSize, double filterFreq);
+	double FrameFrequency(int16_t* buffer, size_t x0, size_t frameN);
  private:
 	uint32_t m_samplingRate;
 	double m_minFreq;
@@ -36,7 +53,6 @@ class SilverPush
 	
 	SoundEngine* m_engine;
 	SoundPlayer* m_player;
-	SoundRecorder* m_recorder;
 
 	Butterworth* m_highpassFilter;
 };

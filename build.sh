@@ -1,5 +1,5 @@
 mkdir -p solution
 
 cd solution
-cmake -G "CodeBlocks - Unix Makefiles" ..
+cmake -j9 -G "CodeBlocks - Unix Makefiles" ..
 cmake --build .
