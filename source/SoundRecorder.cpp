@@ -7,13 +7,23 @@ void SoundRecorder::bufferQueueCallback(SLAndroidSimpleBufferQueueItf bq, void* 
 }
 
 void SoundRecorder::SaveChunk()
-{	
-	size_t bufferSize = m_samplingRate * m_chunkSize * sizeof(int16_t);
+{
+	SLresult result = (*m_recorderQueueInterface)->Clear(m_recorderQueueInterface);
+	if (result != SL_RESULT_SUCCESS) {
+		LOG_E("Failed to clear the recorder queue!\n");
+		return;
+	}
+	
+        const size_t bufferSize = m_samplingRate * m_chunkSize * sizeof(int16_t);
 	int16_t* buffer = new int16_t[bufferSize];
 
-	(*m_recorderQueueInterface)->Enqueue(m_recorderQueueInterface,
-					     buffer, bufferSize);
-
+	result = (*m_recorderQueueInterface)->Enqueue(m_recorderQueueInterface,
+						      buffer, bufferSize);
+	if (result != SL_RESULT_SUCCESS) {
+		LOG_E("Failed to enqueue while recording!\n");
+		return;
+	}
+	
 	m_lock.lock();
 	m_queue.push(buffer);
 	m_lock.unlock();
@@ -123,7 +133,6 @@ SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)
 SoundRecorder::~SoundRecorder()
 {
 	this->Stop();
-	this->ClearQueue();
 	(*m_recorder)->Destroy(m_recorder);
 }
 

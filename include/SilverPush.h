@@ -41,7 +41,6 @@ class SilverPush
 			 size_t frameSize,
 			 size_t frameStep);
 
-	void GetFrequency(int16_t buffer[], size_t startIndex, size_t frameSize, double& minA, double& maxA);
 	void FilterFrequencySequence(std::list<double>& frequencySequence);
 	
 	int16_t* GenerateWave(const std::string& message, size_t* bufferSize);

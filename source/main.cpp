@@ -9,7 +9,7 @@ int main(int argc, char** argv)
 
 	// 85 миллисекунд -- идеальное значения для расчета преобразования Фурье
 	SilverPush silver(engine, 48000, 19000, 20000, 85);
-	silver.PushMessage("Hello World!");
+	silver.PushMessage("Hello!");
 	silver.Send();
 	silver.ReceiveMessage();
 	

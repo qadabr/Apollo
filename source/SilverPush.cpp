@@ -114,29 +114,15 @@ void SilverPush::ParseBuffer(std::list<double>& frequencySequence,
 	}
 }
 
-void SilverPush::GetFrequency(int16_t buffer[], size_t startIndex, size_t frameSize, double& min, double& max)
-{
-	const static size_t tempSize = std::pow(2, 12);
-	
-	static std::vector<double> temp(tempSize);
-	std::copy(&buffer[startIndex], &buffer[startIndex] + frameSize, temp.begin());
-	
-	auto fft = Aquila::FftFactory::getFft(tempSize);
-	auto spectrum = fft->fft(temp.data());
-
-	min = spectrum[frameSize * m_minFreq / m_samplingRate].real(); 
-	max = spectrum[frameSize * m_maxFreq / m_samplingRate].real(); 
-}
-
 void SilverPush::FilterFrequencySequence(std::list<double>& frequencySequence)
 {
 	for (double& frequency : frequencySequence) {
-		if (std::abs(frequency - m_minFreq) < 300) {
+		if (std::abs(frequency - m_minFreq) < 100) {
 			frequency = m_minFreq;
 			continue;
 		}
 
-		if (std::abs(frequency - m_maxFreq) < 300) {
+		if (std::abs(frequency - m_maxFreq) < 100) {
 			frequency = m_maxFreq;
 			continue;
 		}
@@ -185,11 +171,49 @@ std::string SilverPush::GetBitList(std::list<double>& frequencySequence, size_t 
 	return result;
 }
 
+template <typename T>
+static void SmoothSignal(T input[], T output[], int n, int window)
+{
+	int i,j,z,k1,k2,hw;
+	double tmp;
+	
+	if (fmod(window, 2) == 0)
+		window++;
+
+	hw = (window - 1) / 2;
+	output[0] = input[0];
+	
+	for (i = 1; i < n; i++) {
+		tmp = 0;
+		if (i < hw) {
+			k1 = 0;
+			k2 = 2 * i;
+			z = k2 + 1;
+		}
+		else if ((i + hw) > (n - 1)) {
+			k1 = i - n + i + 1;
+			k2 = n - 1;
+			z = k2 - k1 + 1;
+		}
+		else {
+			k1 = i - hw;
+			k2 = i + hw;
+			z = window;
+		}
+		
+		for (j = k1;j <= k2;j++) {
+			tmp = tmp + input[j];
+		}
+		
+		output[i] = tmp / z;
+	}
+}
+
 void SilverPush::ReceiveMessage()
 {
 	m_recorder->Record();
 	
-	const size_t frameStep = 250;
+	const size_t frameStep = 500;
 	const size_t frameSize = m_duration * m_samplingRate / 1000;
 	const size_t bufferSize = m_recorder->GetBufferSize();
 
@@ -202,11 +226,14 @@ void SilverPush::ReceiveMessage()
 		//m_recorder->SaveWav("/sdcard/original.wav", buffer, bufferSize);
 		
 		std::list<double> frequencySequence;
-		SignalFiltration(buffer, bufferSize, 2 * m_minFreq - m_maxFreq);
 
-		//m_recorder->SaveWav("/sdcard/filtered.wav", buffer, bufferSize);
+		int16_t output[bufferSize];
+		SmoothSignal(buffer, output, bufferSize, 20);
+		SignalFiltration(output, bufferSize, 2 * m_minFreq - m_maxFreq);
 		
-		ParseBuffer(frequencySequence, buffer, bufferSize, frameSize, frameStep);
+		//m_recorder->SaveWav("/sdcard/filtered.wav", output, bufferSize);
+		
+		ParseBuffer(frequencySequence, output, bufferSize, frameSize, frameStep);
 		FilterFrequencySequence(frequencySequence);
 		std::string bitList = GetBitList(frequencySequence, frameStep);
 
