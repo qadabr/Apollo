@@ -4,7 +4,6 @@
 #include "SoundEngine.h"
 #include "SoundPlayer.h"
 #include "SoundRecorder.h"
-#include "Butterworth.h"
 
 #include <aquila/global.h>
 #include <aquila/transform/FftFactory.h>
