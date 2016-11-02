@@ -1,6 +1,6 @@
-#include "SilverPush.h"
+#include "SilverRay.h"
 
-SilverPush::SilverPush(SoundEngine* engine,
+SilverRay::SilverRay(SoundEngine* engine,
 		       uint32_t samplingRate,
 		       double minFreq,
 		       double maxFreq,
@@ -15,13 +15,13 @@ SilverPush::SilverPush(SoundEngine* engine,
 	m_recorder = new SoundRecorder(m_engine, m_samplingRate);
 }
 
-SilverPush::~SilverPush()
+SilverRay::~SilverRay()
 {
 	delete m_player;
 	delete m_recorder;
 }
 
-void SilverPush::PushMessage(const std::string& message)
+void SilverRay::PushMessage(const std::string& message)
 {
 	size_t bufferSize;
 	int16_t* buffer = GenerateWave(message, &bufferSize);
@@ -29,7 +29,7 @@ void SilverPush::PushMessage(const std::string& message)
 	m_player->EnqueueBuffer(buffer, bufferSize);
 }
 
-void SilverPush::Send()
+void SilverRay::Send()
 {
 	m_player->Play();
 }
@@ -50,7 +50,7 @@ static std::string BitsToString(std::vector<bool> &bits)
 	return result;
 }
 
-void SilverPush::SignalFiltration(int16_t* buffer, size_t bufferSize, double filterFreq)
+void SilverRay::SignalFiltration(int16_t* buffer, size_t bufferSize, double filterFreq)
 {
 	// 2^18 потому что буфер размером 5 * 48000
 	const size_t tempSize = std::pow(2, 18);
@@ -95,7 +95,7 @@ static bool CompareDouble(double a, double b)
 	return false;
 }
 
-void SilverPush::ParseBuffer(std::list<double>& frequencySequence,
+void SilverRay::ParseBuffer(std::list<double>& frequencySequence,
 			     int16_t* buffer,
 			     size_t bufferSize,
 			     size_t frameSize,
@@ -114,7 +114,7 @@ void SilverPush::ParseBuffer(std::list<double>& frequencySequence,
 	}
 }
 
-void SilverPush::FilterFrequencySequence(std::list<double>& frequencySequence)
+void SilverRay::FilterFrequencySequence(std::list<double>& frequencySequence)
 {
 	for (double& frequency : frequencySequence) {
 		if (std::abs(frequency - m_minFreq) < 100) {
@@ -131,7 +131,7 @@ void SilverPush::FilterFrequencySequence(std::list<double>& frequencySequence)
 	}
 }
 
-std::string SilverPush::GetBitList(std::list<double>& frequencySequence, size_t frameStep)
+std::string SilverRay::GetBitList(std::list<double>& frequencySequence, size_t frameStep)
 {
 	std::string result = "";
 	
@@ -209,7 +209,7 @@ static void SmoothSignal(T input[], T output[], int n, int window)
 	}
 }
 
-void SilverPush::ReceiveMessage(size_t milliseconds)
+void SilverRay::ReceiveMessage(size_t milliseconds)
 {
 	m_recorder->Record();
 	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
@@ -249,7 +249,7 @@ inline int GetBit(const std::string& message, size_t index)
 	return message[index / 8] & (1 << (7 - index) % 8) ? 1 : 0;
 }
 
-int16_t* SilverPush::GenerateWave(const std::string& message, size_t* bufferSize)
+int16_t* SilverRay::GenerateWave(const std::string& message, size_t* bufferSize)
 {
 	/* Размер фрагмента волны, который должен звучать на одной высоте */
 	size_t fragmentSize = (size_t)(m_duration * m_player->GetSamplingRate() / 1000.0);
@@ -287,7 +287,7 @@ int16_t* SilverPush::GenerateWave(const std::string& message, size_t* bufferSize
 	return wave;
 }
 
-double SilverPush::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
+double SilverRay::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 {
 	// Количество изменений знака функции на протяжении фрейма
 	size_t n = 0;

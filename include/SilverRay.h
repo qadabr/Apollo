@@ -20,15 +20,15 @@
 
 #include <unistd.h>
 
-class SilverPush
+class SilverRay
 {
  public:
-	SilverPush(SoundEngine* engine,
+	SilverRay(SoundEngine* engine,
 		   uint32_t samplingRate,
 		   double minFreq,
 		   double maxFreq,
 		   size_t duration);
-	~SilverPush();
+	~SilverRay();
  public:
 	void PushMessage(const std::string& message);
 	void Send();
