@@ -8,16 +8,16 @@
 
 #include <aquila/global.h>
 #include <aquila/transform/FftFactory.h>
-#include <aquila/tools/TextPlot.h>
-#include <aquila/source/generator/SineGenerator.h>
+
 #include <algorithm>
 #include <functional>
 #include <memory>
-
 #include <vector>
 #include <string>
 #include <cmath>
 #include <list>
+#include <thread>
+
 #include <unistd.h>
 
 class SilverPush
@@ -32,7 +32,7 @@ class SilverPush
  public:
 	void PushMessage(const std::string& message);
 	void Send();
-	void ReceiveMessage();
+	void ReceiveMessage(size_t milliseconds);
  private:
 	std::string GetBitList(std::list<double>& frequencySequence, size_t frameStep);
 	void ParseBuffer(std::list<double>& frequencySequence,

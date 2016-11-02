@@ -209,26 +209,25 @@ static void SmoothSignal(T input[], T output[], int n, int window)
 	}
 }
 
-void SilverPush::ReceiveMessage()
+void SilverPush::ReceiveMessage(size_t milliseconds)
 {
 	m_recorder->Record();
+	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 	
-	const size_t frameStep = 500;
+	const size_t frameStep = 250;
 	const size_t frameSize = m_duration * m_samplingRate / 1000;
 	const size_t bufferSize = m_recorder->GetBufferSize();
 
-	while (true) {
+	while (not m_recorder->IsEmpty()) {
 		int16_t* buffer = m_recorder->DequeueBuffer();
-		if (buffer == nullptr) {
-			continue;
-		}
-
-		//m_recorder->SaveWav("/sdcard/original.wav", buffer, bufferSize);
 		
 		std::list<double> frequencySequence;
 
 		int16_t output[bufferSize];
 		SmoothSignal(buffer, output, bufferSize, 20);
+
+		//m_recorder->SaveWav("/sdcard/original.wav", output, bufferSize);
+		
 		SignalFiltration(output, bufferSize, 2 * m_minFreq - m_maxFreq);
 		
 		//m_recorder->SaveWav("/sdcard/filtered.wav", output, bufferSize);
