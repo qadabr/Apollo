@@ -1,5 +1,5 @@
-#ifndef SILVERPUSH_H
-#define SILVERPUSH_H
+#ifndef SILVERRAY_H
+#define SILVERRAY_H
 
 #include "SoundEngine.h"
 #include "SoundPlayer.h"
