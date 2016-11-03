@@ -1,5 +1,7 @@
 #include "SilverRay.h"
 
+#include "Window.h"
+
 SilverRay::SilverRay(SoundEngine* engine,
 		       uint32_t samplingRate,
 		       double minFreq,
@@ -52,8 +54,10 @@ static std::string BitsToString(std::vector<bool> &bits)
 
 void SilverRay::SignalFiltration(int16_t* buffer, size_t bufferSize, double filterFreq)
 {
-	// 2^18 потому что буфер размером 5 * 48000
-	const size_t tempSize = std::pow(2, 18);
+	size_t tempSize = 2;
+	while (tempSize < bufferSize) {
+		tempSize *= 2;
+	}
 	
 	std::vector<double> temp(tempSize);
 	std::copy(buffer, buffer + bufferSize, temp.begin());
@@ -80,19 +84,24 @@ void SilverRay::SignalFiltration(int16_t* buffer, size_t bufferSize, double filt
 		       std::begin(spectrum),
 		       [] (Aquila::ComplexType x, Aquila::ComplexType y) { return x * y; }
 	);
-	
+
 	fft->ifft(spectrum, temp.data());
 
 	std::copy(temp.begin(), temp.begin() + bufferSize, buffer);
 }
 
-static bool CompareDouble(double a, double b)
+static bool CompareDouble(double a, double b, double err)
 {
-	if (std::abs(a - b) < 0.1) {
+	if (std::abs(a - b) < err) {
 		return true;
 	}
 
 	return false;
+}
+
+static bool CompareDouble(double a, double b)
+{
+	return CompareDouble(a, b, 0.1);
 }
 
 void SilverRay::ParseBuffer(std::list<double>& frequencySequence,
@@ -121,7 +130,7 @@ void SilverRay::FilterFrequencySequence(std::list<double>& frequencySequence)
 			frequency = m_minFreq;
 			continue;
 		}
-
+		
 		if (std::abs(frequency - m_maxFreq) < 100) {
 			frequency = m_maxFreq;
 			continue;
@@ -214,7 +223,7 @@ void SilverRay::ReceiveMessage(size_t milliseconds)
 	m_recorder->Record();
 	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 	
-	const size_t frameStep = 250;
+	const size_t frameStep = 4;
 	const size_t frameSize = m_duration * m_samplingRate / 1000;
 	const size_t bufferSize = m_recorder->GetBufferSize();
 
@@ -223,16 +232,13 @@ void SilverRay::ReceiveMessage(size_t milliseconds)
 		
 		std::list<double> frequencySequence;
 
-		int16_t output[bufferSize];
-		SmoothSignal(buffer, output, bufferSize, 20);
-
-		//m_recorder->SaveWav("/sdcard/original.wav", output, bufferSize);
-		
-		SignalFiltration(output, bufferSize, 2 * m_minFreq - m_maxFreq);
-		
+		//int16_t output[bufferSize];
+		//SmoothSignal(buffer, output, bufferSize, 20);
+		//m_recorder->SaveWav("/sdcard/original.wav", buffer, bufferSize);
+		//SignalFiltration(buffer, bufferSize, 2 * m_minFreq - m_maxFreq);
 		//m_recorder->SaveWav("/sdcard/filtered.wav", output, bufferSize);
 		
-		ParseBuffer(frequencySequence, output, bufferSize, frameSize, frameStep);
+		ParseBuffer(frequencySequence, buffer, bufferSize, frameSize, frameStep);
 		FilterFrequencySequence(frequencySequence);
 		std::string bitList = GetBitList(frequencySequence, frameStep);
 
@@ -289,16 +295,20 @@ int16_t* SilverRay::GenerateWave(const std::string& message, size_t* bufferSize)
 
 double SilverRay::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 {
-	// Количество изменений знака функции на протяжении фрейма
-	size_t n = 0;
+	FrameFrequencyDetector detector(std::vector<short>(&buffer[x0], &buffer[x0] + frameN));
 
-	for (size_t i = x0; i < x0 + frameN; ++i) {
-		// Получим на выходе число со знаком, если изначально знаки у них были разные
-		if (buffer[i] * buffer[i + 1] < 0.0) {
-			++n;
-		}
+	double maxMag = detector.GetMaxMagnitude();
+	double magMin = detector.GetMagnitude(m_minFreq, m_samplingRate) / maxMag * 100; //%
+	double magMax = detector.GetMagnitude(m_maxFreq, m_samplingRate) / maxMag * 100; //%
+
+	double freq = 0;
+	if (CompareDouble(magMin, 100, 50)) {
+		freq = m_minFreq;
 	}
 
-	// Средняя частота функции в фрейме
-	return 0.5 * m_samplingRate * n / frameN;
+	if (CompareDouble(magMax, 100, 50)) {
+		freq = m_maxFreq;
+	}
+	
+	return freq;
 }

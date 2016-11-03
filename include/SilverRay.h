@@ -4,9 +4,12 @@
 #include "SoundEngine.h"
 #include "SoundPlayer.h"
 #include "SoundRecorder.h"
+#include "FrameFrequencyDetector.h"
 
 #include <aquila/global.h>
 #include <aquila/transform/FftFactory.h>
+#include <aquila/source/window/HammingWindow.h>
+#include <aquila/source/window/BlackmanWindow.h>
 
 #include <algorithm>
 #include <functional>

@@ -7,10 +7,10 @@ int main(int argc, char** argv)
 {
 	SoundEngine* engine = new SoundEngine();
 
-	// 85 миллисекунд -- идеальное значения для расчета преобразования Фурье для фрейма
-	SilverRay silver(engine, 48000, 19000, 20000, 200);
-	silver.PushMessage("How are you?");
+	SilverRay silver(engine, 44100, 18000, 19000, 200);
+	silver.PushMessage("Hello!");
 	silver.Send();
+	//sleep(20);
 	silver.ReceiveMessage(20000);
 	
 	return 0;
