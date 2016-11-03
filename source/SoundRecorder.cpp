@@ -37,9 +37,14 @@ int16_t* SoundRecorder::DequeueBuffer()
 	return buffer;
 }
 
-bool SoundRecorder::IsEmpty()
+const bool SoundRecorder::IsEmpty()
 {
 	return m_queue.empty();
+}
+
+const size_t SoundRecorder::Size()
+{
+	return m_queue.size();
 }
 
 SoundRecorder::SoundRecorder(SoundEngine* engine, uint32_t samplingRate)

@@ -225,26 +225,22 @@ void SilverRay::ReceiveMessage(size_t milliseconds)
 	
 	const size_t frameStep = 4;
 	const size_t frameSize = m_duration * m_samplingRate / 1000;
-	const size_t bufferSize = m_recorder->GetBufferSize();
+	
+	std::vector<short> largeBuffer(m_recorder->Size() * m_recorder->GetBufferSize());
+	for (size_t chunkIndex = 0; not m_recorder->IsEmpty(); ++chunkIndex) {
+		std::unique_ptr<short[]> chunk(m_recorder->DequeueBuffer());
 
-	while (not m_recorder->IsEmpty()) {
-		int16_t* buffer = m_recorder->DequeueBuffer();
-		
 		std::list<double> frequencySequence;
-
-		//int16_t output[bufferSize];
-		//SmoothSignal(buffer, output, bufferSize, 20);
-		//m_recorder->SaveWav("/sdcard/original.wav", buffer, bufferSize);
-		//SignalFiltration(buffer, bufferSize, 2 * m_minFreq - m_maxFreq);
-		//m_recorder->SaveWav("/sdcard/filtered.wav", output, bufferSize);
+		ParseBuffer(frequencySequence,
+			    chunk.get(),
+			    m_recorder->GetBufferSize(),
+			    frameSize,
+			    frameStep);
 		
-		ParseBuffer(frequencySequence, buffer, bufferSize, frameSize, frameStep);
 		FilterFrequencySequence(frequencySequence);
 		std::string bitList = GetBitList(frequencySequence, frameStep);
 
 		printf(" Received: %s\n", bitList.c_str());
-
-		delete[] buffer;
 	}
 
 	m_recorder->Stop();

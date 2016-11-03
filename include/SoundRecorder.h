@@ -28,9 +28,13 @@ class SoundRecorder
 
 	useconds_t GetSwapTimeMicrosecond();
 	void SaveWav(const std::string& filePath, int16_t* buffer, size_t bufferSize);
-	bool IsEmpty();
+
+	const bool IsEmpty();
+	const size_t Size();
+
  private:
 	static void bufferQueueCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
+
  private:
 	SoundEngine* m_engine;
 	uint32_t m_samplingRate;
