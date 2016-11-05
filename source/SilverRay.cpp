@@ -291,13 +291,14 @@ int16_t* SilverRay::GenerateWave(const std::string& message, size_t* bufferSize)
 
 double SilverRay::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 {
-	FrameFrequencyDetector detector(std::vector<short>(&buffer[x0], &buffer[x0] + frameN));
+	FrameFrequencyDetector detector(std::vector<short>(&buffer[x0], &buffer[x0] + frameN),
+					m_samplingRate);
 
-	detector.HighFilter(2 * m_minFreq - m_maxFreq, m_samplingRate);
+	detector.HighFilter(2 * m_minFreq - m_maxFreq);
 	
 	double maxMag = detector.GetMaxMagnitude();
-	double magMin = detector.GetMagnitude(m_minFreq, m_samplingRate) / maxMag * 100; //%
-	double magMax = detector.GetMagnitude(m_maxFreq, m_samplingRate) / maxMag * 100; //%
+	double magMin = detector.GetMagnitude(m_minFreq) / maxMag * 100; //%
+	double magMax = detector.GetMagnitude(m_maxFreq) / maxMag * 100; //%
 
 	double freq = 0;
 	if (CompareDouble(magMin, 100, 50)) {

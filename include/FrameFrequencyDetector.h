@@ -11,15 +11,16 @@
 class FrameFrequencyDetector
 {
  public:
-	FrameFrequencyDetector(const std::vector<short>& frame);
+	FrameFrequencyDetector(const std::vector<short>& frame, const size_t samplingRate);
 	~FrameFrequencyDetector();
 
-	void HighFilter(const double frequency, const size_t samplingRate);
+	void HighFilter(const double frequency);
 	
-	const double GetMagnitude(const double frequency, const size_t samplingRate);	
+	const double GetMagnitude(const double frequency);	
 	const double GetMaxMagnitude();
 	
  private:
+	size_t                   mSamplingRate;
 	size_t                   mSize;
 	Aquila::SpectrumType     mSpectrum;
 };
