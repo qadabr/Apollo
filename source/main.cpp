@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
 	SoundEngine* engine = new SoundEngine();
 
-	SilverRay silver(engine, 44100, 18000, 19000, 200);
+	SilverRay silver(engine, 44100, 19000, 20000, 200);
 	silver.PushMessage("Hello!");
 	silver.Send();
 	//sleep(20);

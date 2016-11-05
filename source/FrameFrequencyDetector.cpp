@@ -21,6 +21,23 @@ FrameFrequencyDetector::~FrameFrequencyDetector()
 	
 }
 
+void FrameFrequencyDetector::HighFilter(const double frequency, const size_t samplingRate)
+{
+	Aquila::SpectrumType filterSpectrum(mSize);
+	for (std::size_t i = 0; i < mSize; ++i) {
+		if (i > (mSize * frequency / samplingRate))
+			filterSpectrum[i] = 1.0;
+		else
+			filterSpectrum[i] = 0.0;
+	}
+
+	std::transform(mSpectrum.begin(),
+		       mSpectrum.end(),
+		       filterSpectrum.begin(),
+		       mSpectrum.begin(),
+		       [] (Aquila::ComplexType x, Aquila::ComplexType y) { return x * y; });
+}
+
 const double FrameFrequencyDetector::GetMagnitude(const double frequency, const size_t samplingRate)
 {
 	auto x = mSpectrum[mSize * frequency / samplingRate];
