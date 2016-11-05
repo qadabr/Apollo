@@ -8,10 +8,10 @@ int main(int argc, char** argv)
 	SoundEngine* engine = new SoundEngine();
 
 	SilverRay silver(engine, 44100, 19000, 20000, 200);
-	silver.PushMessage("Hello!");
-	silver.Send();
-	//sleep(20);
-	silver.ReceiveMessage(20000);
+	//silver.PushMessage("How are you today?");
+	//silver.Send();
+	//sleep(30);
+	silver.ReceiveMessage(30000);
 	
 	return 0;
 }

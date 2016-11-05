@@ -26,10 +26,15 @@ void FrameFrequencyDetector::HighFilter(const double frequency)
 {
 	Aquila::SpectrumType filterSpectrum(mSize);
 	for (std::size_t i = 0; i < mSize; ++i) {
-		if (i > (mSize * frequency / mSamplingRate))
-			filterSpectrum[i] = 1.0;
-		else
+		double freq1 = mSize * frequency / mSamplingRate;
+		double freq2 = mSize * (mSamplingRate - frequency) / mSamplingRate; 
+		
+		if (i < freq1 || i > freq2) {
 			filterSpectrum[i] = 0.0;
+		}
+		else {
+			filterSpectrum[i] = 2.0;
+		}
 	}
 
 	std::transform(mSpectrum.begin(),
