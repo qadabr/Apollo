@@ -36,14 +36,14 @@ void SilverRay::Send()
 	m_player->Play();
 }
 
-static std::string BitsToString(std::vector<bool> &bits)
+static std::string BitsToString(std::string& bits)
 {
 	std::string result = "";
 
 	for (size_t i = 0; i < bits.size(); i += 8) {
 		char c = 0;
 		for (size_t j = 0; j < 8; ++j) {
-			c |= bits[i + j] << (7 - j);
+			c |= (bits[i + j] - '0') << (7 - j);
 		}
 
 		result += c;
@@ -142,6 +142,8 @@ void SilverRay::ReceiveMessage(size_t milliseconds)
 	
 	std::string bitList = GetBitList(frequencySequence, frameStep);
 	printf(" Received: %s\n", bitList.c_str());
+	std::string message = BitsToString(bitList);
+	printf("  Message: %s\n", message.c_str());
 }
 
 inline int GetBit(const std::string& message, size_t index)
