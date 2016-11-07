@@ -1,4 +1,10 @@
 #include "FrameFrequencyDetector.h"
+#include "aquila/source/window/BarlettWindow.h"
+#include "aquila/source/window/BlackmanWindow.h"
+#include "aquila/source/window/FlattopWindow.h"
+#include "aquila/source/window/HammingWindow.h"
+#include "aquila/source/window/HannWindow.h"
+#include "aquila/source/window/RectangularWindow.h"
 
 FrameFrequencyDetector::FrameFrequencyDetector(const std::vector<short>& frame, const size_t samplingRate)
 	: mSamplingRate(samplingRate)
@@ -24,10 +30,8 @@ FrameFrequencyDetector::~FrameFrequencyDetector()
 
 void FrameFrequencyDetector::Filter(const double min, const double max)
 {
-	Aquila::SpectrumType filterSpectrum(mSize);
+	Aquila::SpectrumType filterSpectrum(mSize);	
 	for (std::size_t i = 0; i < mSize; ++i) {
-		double freq1 = mSize * min / mSamplingRate;
-
 		double min1 = mSize * min / mSamplingRate;
 		double max1 = mSize * max / mSamplingRate;
 
