@@ -81,11 +81,15 @@ std::string SilverRay::GetBitList(std::list<double>& frequencySequence, size_t f
 	std::string result = "";
 	
 	size_t bitCount = 0;
+	size_t rawSize = 0;
 	double prvFrequency = 0;
 
 	auto frequencyIterator = frequencySequence.begin();
 	while (frequencyIterator++ != frequencySequence.end()) {
 		double curFrequency = *frequencyIterator;
+		if (CompareDouble(curFrequency, 0) && frequencyIterator != frequencySequence.end()) {
+			continue;
+		}
 		
 		if (CompareDouble(curFrequency, prvFrequency)) {
 			++bitCount;
@@ -93,7 +97,7 @@ std::string SilverRay::GetBitList(std::list<double>& frequencySequence, size_t f
 			continue;
 		}
 
-		size_t rawSize = bitCount ? 1 + (bitCount - 1) / frameStep : 0;
+		rawSize = bitCount ? 1 + (bitCount - 1) / frameStep : 0;
 		if (rawSize > 0) {
 			bitCount = 0;
 		}
@@ -194,21 +198,22 @@ double SilverRay::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 					m_samplingRate);
 
 	detector.Filter(m_minFreq - 50, m_maxFreq + 50);
-	
+
 	double maxMag = detector.GetMaxMagnitude();
 	double magMin = detector.GetMagnitude(m_minFreq) / maxMag * 100; //%
 	double magMax = detector.GetMagnitude(m_maxFreq) / maxMag * 100; //%
 
-	double freq = 0;
-	if (CompareDouble(magMin, 100, 20)) {
-		freq = m_minFreq;
-		return freq;
+	if (CompareDouble(magMin, magMax, 50)) {
+		return 0;
+	}	
+
+	if (CompareDouble(magMin, 100, 50)) {
+		return m_minFreq;
 	}
 
-	if (CompareDouble(magMax, 100, 20)) {
-		freq = m_maxFreq;
-		return freq;
+	if (CompareDouble(magMax, 100, 50)) {
+		return m_maxFreq;
 	}
 	
-	return freq;
+	return 0;
 }
