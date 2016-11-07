@@ -192,18 +192,18 @@ double SilverRay::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 	FrameFrequencyDetector detector(std::vector<short>(&buffer[x0], &buffer[x0] + frameN),
 					m_samplingRate);
 
-	detector.HighFilter(2 * m_minFreq - m_maxFreq);
+	detector.Filter(m_minFreq - 50, m_maxFreq + 50);
 	
 	double maxMag = detector.GetMaxMagnitude();
 	double magMin = detector.GetMagnitude(m_minFreq) / maxMag * 100; //%
 	double magMax = detector.GetMagnitude(m_maxFreq) / maxMag * 100; //%
 
 	double freq = 0;
-	if (CompareDouble(magMin, 100, 20)) {
+	if (CompareDouble(magMin, 100, 50)) {
 		freq = m_minFreq;
 	}
 
-	if (CompareDouble(magMax, 100, 20)) {
+	if (CompareDouble(magMax, 100, 50)) {
 		freq = m_maxFreq;
 	}
 	

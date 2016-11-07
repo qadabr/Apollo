@@ -14,7 +14,7 @@ class FrameFrequencyDetector
 	FrameFrequencyDetector(const std::vector<short>& frame, const size_t samplingRate);
 	~FrameFrequencyDetector();
 
-	void HighFilter(const double frequency);
+	void Filter(const double min, const double max);
 	
 	const double GetMagnitude(const double frequency);	
 	const double GetMaxMagnitude();
