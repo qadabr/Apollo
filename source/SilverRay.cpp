@@ -199,11 +199,11 @@ double SilverRay::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 	double magMax = detector.GetMagnitude(m_maxFreq) / maxMag * 100; //%
 
 	double freq = 0;
-	if (CompareDouble(magMin, 100, 50)) {
+	if (CompareDouble(magMin, 100, 20)) {
 		freq = m_minFreq;
 	}
 
-	if (CompareDouble(magMax, 100, 50)) {
+	if (CompareDouble(magMax, 100, 20)) {
 		freq = m_maxFreq;
 	}
 	
