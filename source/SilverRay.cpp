@@ -159,7 +159,7 @@ int16_t* SilverRay::GenerateWave(const std::string& message, size_t* bufferSize)
 	/* Количество битов в байте */
 	size_t fragmentCount = 8 * message.length();
 
-	*bufferSize = fragmentSize * fragmentCount * 2;
+	*bufferSize = fragmentSize * fragmentCount;
 
 	/* Синтезируемая волна */
 	int16_t* wave = new int16_t[*bufferSize];
@@ -175,7 +175,6 @@ int16_t* SilverRay::GenerateWave(const std::string& message, size_t* bufferSize)
 		for (size_t j = 0; j < fragmentSize; ++j) {
 			double angularFrequency = 2 * M_PI * freq / m_player->GetSamplingRate();
 
-			wave[x++] = (int16_t)(32767 * sin(angle));
 			wave[x++] = (int16_t)(32767 * sin(angle));
 			angle += angularFrequency;
 
@@ -203,10 +202,12 @@ double SilverRay::FrameFrequency(int16_t* buffer, size_t x0, size_t frameN)
 	double freq = 0;
 	if (CompareDouble(magMin, 100, 20)) {
 		freq = m_minFreq;
+		return freq;
 	}
 
 	if (CompareDouble(magMax, 100, 20)) {
 		freq = m_maxFreq;
+		return freq;
 	}
 	
 	return freq;

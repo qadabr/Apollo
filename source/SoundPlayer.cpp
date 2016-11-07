@@ -21,11 +21,11 @@ SoundPlayer::SoundPlayer(SoundEngine* engine, uint32_t samplingRate)
 	
 	SLDataFormat_PCM formatPCM = {
 		SL_DATAFORMAT_PCM,
-		2,
+		1,
 		m_samplingRate * 1000,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
-		SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+		SL_SPEAKER_FRONT_CENTER,
 		SL_BYTEORDER_LITTLEENDIAN
 	};
 	
